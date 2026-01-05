@@ -22,6 +22,49 @@ db.serialize(() => {
       expires_at TEXT
     )
   `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS features (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT,
+      description TEXT,
+      icon TEXT,
+      order_index INTEGER
+    )
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS vehicles (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT,
+      type TEXT,
+      specs TEXT,
+      image TEXT,
+      order_index INTEGER
+    )
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS pricing (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      plan_name TEXT,
+      price TEXT,
+      duration TEXT,
+      features TEXT,
+      order_index INTEGER
+    )
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS downloads (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT,
+      version TEXT,
+      download_url TEXT,
+      file_size TEXT,
+      order_index INTEGER
+    )
+  `);
 });
 
 module.exports = db;

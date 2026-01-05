@@ -1,54 +1,50 @@
+import { useEffect, useState } from "react";
+
 export default function Showcase() {
-  const vehicles = [
-    {
-      id: 1,
-      name: "KTM RC 390",
-      type: "Sportbike",
-      image: "🏍️",
-      specs: "373cc | 43 HP | 167 kg",
-      color: "red"
-    },
-    {
-      id: 2,
-      name: "Honda Civic EK9",
-      type: "Track Car",
-      image: "🚗",
-      specs: "1.6L VTEC | 185 HP | 1070 kg",
-      color: "black"
-    },
-    {
-      id: 3,
-      name: "Nissan GT-R R35",
-      type: "Supercar",
-      image: "🏎️",
-      specs: "3.8L V6 Twin-Turbo | 565 HP",
-      color: "blue"
-    },
-    {
-      id: 4,
-      name: "Mazda RX-7 FD",
-      type: "Sports Car",
-      image: "🚘",
-      specs: "1.3L Rotary | 280 HP | 1280 kg",
-      color: "yellow"
-    },
-    {
-      id: 5,
-      name: "BMW M3 E46",
-      type: "Performance",
-      image: "🚙",
-      specs: "3.2L I6 | 343 HP | 1495 kg",
-      color: "silver"
-    },
-    {
-      id: 6,
-      name: "Toyota Supra A80",
-      type: "Legend",
-      image: "🏁",
-      specs: "3.0L 2JZ-GTE | 320 HP",
-      color: "orange"
-    }
-  ];
+  const [vehicles, setVehicles] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/cms")
+      .then(r => r.json())
+      .then(data => {
+        setVehicles(data.vehicles || []);
+        setLoading(false);
+      })
+      .catch(() => {
+        // Eğer API hatası varsa, örnek veriyle devam et
+        setVehicles([
+          {
+            id: 1,
+            name: "KTM RC 390",
+            type: "Sportbike",
+            image_url: "🏍️",
+            specs: "373cc | 43 HP | 167 kg"
+          },
+          {
+            id: 2,
+            name: "Honda Civic EK9",
+            type: "Track Car",
+            image_url: "🚗",
+            specs: "1.6L VTEC | 185 HP | 1070 kg"
+          }
+        ]);
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) {
+    return (
+      <div style={styles.container}>
+        <header style={styles.header}>
+          <div style={styles.logo}>NEXAVEN</div>
+        </header>
+        <div style={{ padding: 100, textAlign: "center", fontSize: 24, color: "#00b7ff" }}>
+          Yükleniyor...
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={styles.container}>
@@ -74,7 +70,13 @@ export default function Showcase() {
         <div style={styles.vehicleGrid}>
           {vehicles.map(vehicle => (
             <div key={vehicle.id} style={styles.vehicleCard}>
-              <div style={styles.vehicleImage}>{vehicle.image}</div>
+              <div style={styles.vehicleImage}>
+                {vehicle.image_url && vehicle.image_url.startsWith('http') ? (
+                  <img src={vehicle.image_url} alt={vehicle.name} style={{ width: '100%', height: 200, objectFit: 'cover' }} />
+                ) : (
+                  <div style={{ fontSize: 120 }}>{vehicle.image_url || "🚗"}</div>
+                )}
+              </div>
               <div style={styles.vehicleInfo}>
                 <span style={styles.vehicleType}>{vehicle.type}</span>
                 <h3 style={styles.vehicleName}>{vehicle.name}</h3>

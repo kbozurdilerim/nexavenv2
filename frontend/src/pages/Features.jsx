@@ -1,4 +1,39 @@
+import { useEffect, useState } from "react";
+
 export default function Features() {
+  const [features, setFeatures] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/cms")
+      .then(r => r.json())
+      .then(data => {
+        setFeatures(data.features || []);
+        setLoading(false);
+      })
+      .catch(() => {
+        // Eğer API hatası varsa, örnek veriyle devam et
+        setFeatures([
+          { id: 1, icon: "🎮", title: "Kontrol Paneli", description: "Sunucu performansını izleyin" },
+          { id: 2, icon: "🖥️", title: "Sunucu Listesi", description: "Sunucularınızı kolayca yönetin" }
+        ]);
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) {
+    return (
+      <div style={styles.container}>
+        <header style={styles.header}>
+          <div style={styles.logo}>NEXAVEN</div>
+        </header>
+        <div style={{ padding: 100, textAlign: "center", fontSize: 24, color: "#00b7ff" }}>
+          Yükleniyor...
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={styles.container}>
       {/* Header */}
@@ -20,64 +55,14 @@ export default function Features() {
 
       {/* Features */}
       <section style={styles.features}>
-        <div style={styles.featureRow}>
-          <div style={styles.featureCard}>
-            <div style={styles.featureIcon}>🎮</div>
-            <h3 style={styles.featureTitle}>Kontrol Paneli</h3>
-            <p style={styles.featureText}>
-              Sunucu performansını izleyin, aktif kullanıcıları görün ve gerçek zamanlı
-              sunucu istatistiklerine erişin.
-            </p>
-          </div>
-
-          <div style={styles.featureCard}>
-            <div style={styles.featureIcon}>🖥️</div>
-            <h3 style={styles.featureTitle}>Sunucu Listesi</h3>
-            <p style={styles.featureText}>
-              GTS Sprint Server, Drift Arena, Elit Arena gibi sunucularınızı
-              kolayca yönetin ve katılım bilgilerini takip edin.
-            </p>
-          </div>
-        </div>
-
-        <div style={styles.featureRow}>
-          <div style={styles.featureCard}>
-            <div style={styles.featureIcon}>🏆</div>
-            <h3 style={styles.featureTitle}>Lig & Etkinlikler</h3>
-            <p style={styles.featureText}>
-              Profesyonel turnuvalar oluşturun, lig sıralamasını görüntüleyin
-              ve etkinlik takviminizi yönetin.
-            </p>
-          </div>
-
-          <div style={styles.featureCard}>
-            <div style={styles.featureIcon}>📊</div>
-            <h3 style={styles.featureTitle}>İstatistikler</h3>
-            <p style={styles.featureText}>
-              Detaylı kişisel istatistikler, en hızlı turlar, kazanılan yarışlar
-              ve performans grafikleri.
-            </p>
-          </div>
-        </div>
-
-        <div style={styles.featureRow}>
-          <div style={styles.featureCard}>
-            <div style={styles.featureIcon}>🔐</div>
-            <h3 style={styles.featureTitle}>Lisans Yönetimi</h3>
-            <p style={styles.featureText}>
-              HWID bazlı lisans kilitleme, süreli lisans desteği ve
-              gelişmiş güvenlik özellikleri.
-            </p>
-          </div>
-
-          <div style={styles.featureCard}>
-            <div style={styles.featureIcon}>⚡</div>
-            <h3 style={styles.featureTitle}>Gerçek Zamanlı İzleme</h3>
-            <p style={styles.featureText}>
-              CPU, RAM kullanımı, aktif oyuncular ve sunucu durumu
-              anlık olarak takip edin.
-            </p>
-          </div>
+        <div style={styles.featureGrid}>
+          {features.map(feature => (
+            <div key={feature.id} style={styles.featureCard}>
+              <div style={styles.featureIcon}>{feature.icon}</div>
+              <h3 style={styles.featureTitle}>{feature.title}</h3>
+              <p style={styles.featureText}>{feature.description}</p>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -161,6 +146,11 @@ const styles = {
     padding: "40px 60px 80px",
     maxWidth: 1400,
     margin: "0 auto",
+  },
+  featureGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))",
+    gap: 30,
   },
   featureRow: {
     display: "grid",

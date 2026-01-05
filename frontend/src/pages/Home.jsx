@@ -1,4 +1,19 @@
+import { useEffect, useState } from "react";
+
 export default function Home() {
+  const [pricing, setPricing] = useState([]);
+  const [downloads, setDownloads] = useState([]);
+
+  useEffect(() => {
+    fetch("/api/cms")
+      .then(r => r.json())
+      .then(data => {
+        setPricing(data.pricing || []);
+        setDownloads(data.downloads || []);
+      })
+      .catch(console.error);
+  }, []);
+
   return (
     <div style={styles.container}>
       {/* Header */}
@@ -60,6 +75,47 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Pricing Section */}
+      {pricing.length > 0 && (
+        <section style={styles.pricing}>
+          <h2 style={styles.sectionTitle}>FİYATLANDIRMA</h2>
+          <div style={styles.pricingGrid}>
+            {pricing.map(plan => (
+              <div key={plan.id} style={styles.pricingCard}>
+                <h3 style={styles.pricingName}>{plan.plan_name}</h3>
+                <div style={styles.pricingPrice}>{plan.price}₺</div>
+                <div style={styles.pricingDuration}>{plan.duration}</div>
+                <ul style={styles.pricingFeatures}>
+                  {plan.features.split('\n').map((f, i) => (
+                    <li key={i} style={styles.pricingFeature}>{f}</li>
+                  ))}
+                </ul>
+                <a href="/login" style={styles.btnPrimary}>Satın Al</a>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Downloads Section */}
+      {downloads.length > 0 && (
+        <section style={styles.downloads}>
+          <h2 style={styles.sectionTitle}>İNDİRMELER</h2>
+          <div style={styles.downloadsGrid}>
+            {downloads.map(download => (
+              <div key={download.id} style={styles.downloadCard}>
+                <div style={styles.downloadIcon}>📦</div>
+                <h3 style={styles.downloadTitle}>{download.title}</h3>
+                <div style={styles.downloadMeta}>
+                  <span>{download.version}</span> • <span>{download.file_size}</span>
+                </div>
+                <a href={download.download_url} style={styles.btnSecondary} target="_blank">İndir</a>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* CTA Section */}
       <section style={styles.cta}>
         <h2 style={styles.ctaTitle}>Sadelik ve Performansın Buluştuğu Dijital Platform</h2>
@@ -84,6 +140,7 @@ const styles = {
     background: "linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%)",
     color: "#fff",
     minHeight: "100vh",
+    width: "100%",
   },
   header: {
     display: "flex",
@@ -233,6 +290,81 @@ const styles = {
     background: "linear-gradient(135deg, rgba(0, 183, 255, 0.1), rgba(0, 102, 255, 0.1))",
     borderTop: "1px solid rgba(0, 183, 255, 0.2)",
     borderBottom: "1px solid rgba(0, 183, 255, 0.2)",
+  },
+  pricing: {
+    padding: "80px 60px",
+    maxWidth: 1400,
+    margin: "0 auto",
+  },
+  pricingGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+    gap: 30,
+  },
+  pricingCard: {
+    background: "rgba(26, 31, 58, 0.6)",
+    padding: 40,
+    borderRadius: 16,
+    border: "1px solid rgba(0, 183, 255, 0.2)",
+    textAlign: "center",
+  },
+  pricingName: {
+    fontSize: 28,
+    marginBottom: 20,
+    color: "#00b7ff",
+  },
+  pricingPrice: {
+    fontSize: 48,
+    fontWeight: "bold",
+    marginBottom: 10,
+    color: "#fff",
+  },
+  pricingDuration: {
+    fontSize: 16,
+    color: "#aaa",
+    marginBottom: 30,
+  },
+  pricingFeatures: {
+    listStyle: "none",
+    padding: 0,
+    marginBottom: 30,
+  },
+  pricingFeature: {
+    padding: "10px 0",
+    color: "#ddd",
+    borderBottom: "1px solid rgba(0, 183, 255, 0.1)",
+  },
+  downloads: {
+    padding: "80px 60px",
+    maxWidth: 1400,
+    margin: "0 auto",
+    background: "rgba(10, 14, 39, 0.3)",
+  },
+  downloadsGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+    gap: 30,
+  },
+  downloadCard: {
+    background: "rgba(26, 31, 58, 0.6)",
+    padding: 40,
+    borderRadius: 12,
+    border: "1px solid rgba(0, 183, 255, 0.2)",
+    textAlign: "center",
+  },
+  downloadIcon: {
+    fontSize: 64,
+    marginBottom: 20,
+  },
+  downloadTitle: {
+    fontSize: 22,
+    marginBottom: 15,
+    color: "#fff",
+  },
+  downloadMeta: {
+    fontSize: 14,
+    color: "#aaa",
+    marginBottom: 25,
   },
   ctaTitle: {
     fontSize: 38,
