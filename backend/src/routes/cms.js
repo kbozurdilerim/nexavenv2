@@ -1,8 +1,39 @@
 const express = require("express");
 const db = require("../db/sqlite");
 const auth = require("../middleware/authMiddleware");
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
 
 const router = express.Router();
+
+// Image upload konfigürasyonu
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadDir = "./data/uploads";
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ 
+  storage: storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  fileFilter: function (req, file, cb) {
+    const filetypes = /jpeg|jpg|png|gif|webp/;
+    const mimetype = filetypes.test(file.mimetype);
+    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+    
+    if (mimetype && extname) return cb(null, true);
+    cb(new Error("Sadece resim dosyaları yüklenebilir!"));
+  }
+});
 
 // CMS içeriklerini getir
 router.get("/", (req, res) => {
@@ -137,6 +168,77 @@ router.delete("/downloads/:id", auth, (req, res) => {
   db.run("DELETE FROM downloads WHERE id = ?", [req.params.id], () => {
     res.json({ status: "ok" });
   });
+});
+
+// ================ IMAGE UPLOAD ================
+router.post("/upload", auth, upload.single("image"), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: "Dosya yüklenmedi" });
+  }
+  const imageUrl = `/uploads/${req.file.filename}`;
+  res.json({ imageUrl });
+});
+
+// ================ PUT ENDPOINTS (EDIT) ================
+
+// Özellik güncelle
+router.put("/features/:id", auth, (req, res) => {
+  const { id } = req.params;
+  const { title, description, icon, image_url, order_index } = req.body;
+  
+  db.run(
+    "UPDATE features SET title = ?, description = ?, icon = ?, image_url = ?, order_index = ? WHERE id = ?",
+    [title, description, icon, image_url, order_index, id],
+    (err) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ status: "ok" });
+    }
+  );
+});
+
+// Araç güncelle
+router.put("/vehicles/:id", auth, (req, res) => {
+  const { id } = req.params;
+  const { name, type, specs, image_url, order_index } = req.body;
+  
+  db.run(
+    "UPDATE vehicles SET name = ?, type = ?, specs = ?, image_url = ?, order_index = ? WHERE id = ?",
+    [name, type, specs, image_url, order_index, id],
+    (err) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ status: "ok" });
+    }
+  );
+});
+
+// Fiyat güncelle
+router.put("/pricing/:id", auth, (req, res) => {
+  const { id } = req.params;
+  const { plan_name, price, duration, features, image_url, order_index } = req.body;
+  
+  db.run(
+    "UPDATE pricing SET plan_name = ?, price = ?, duration = ?, features = ?, image_url = ?, order_index = ? WHERE id = ?",
+    [plan_name, price, duration, features, image_url, order_index, id],
+    (err) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ status: "ok" });
+    }
+  );
+});
+
+// İndirme güncelle
+router.put("/downloads/:id", auth, (req, res) => {
+  const { id } = req.params;
+  const { title, version, download_url, file_size, image_url, order_index } = req.body;
+  
+  db.run(
+    "UPDATE downloads SET title = ?, version = ?, download_url = ?, file_size = ?, image_url = ?, order_index = ? WHERE id = ?",
+    [title, version, download_url, file_size, image_url, order_index, id],
+    (err) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ status: "ok" });
+    }
+  );
 });
 
 module.exports = router;
