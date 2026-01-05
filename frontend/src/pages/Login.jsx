@@ -1,11 +1,18 @@
 import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function Login() {
-  const [username, setU] = useState("");
-  const [password, setP] = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-  const login = async () => {
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
@@ -17,76 +24,175 @@ export default function Login() {
 
       if (data.token) {
         localStorage.setItem("token", data.token);
-        window.location.href = "/admin";
+        navigate("/admin");
       } else {
         setError(data.error || "Giriş başarısız");
       }
     } catch (err) {
       setError("Bağlantı hatası");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div style={{ 
-      padding: 40, 
-      fontFamily: "Arial, sans-serif", 
-      maxWidth: 400, 
-      margin: "100px auto",
-      border: "1px solid #ddd",
-      borderRadius: 8,
-      boxShadow: "0 2px 10px rgba(0,0,0,0.1)"
-    }}>
-      <h2>🔐 Admin Girişi</h2>
-      
-      {error && <div style={{ color: "red", marginBottom: 10 }}>{error}</div>}
-      
-      <input
-        placeholder="Kullanıcı Adı"
-        style={{
-          width: "100%",
-          padding: 10,
-          marginBottom: 10,
-          border: "1px solid #ccc",
-          borderRadius: 4
-        }}
-        onChange={e => setU(e.target.value)}
-      />
-      
-      <input
-        placeholder="Şifre"
-        type="password"
-        style={{
-          width: "100%",
-          padding: 10,
-          marginBottom: 10,
-          border: "1px solid #ccc",
-          borderRadius: 4
-        }}
-        onChange={e => setP(e.target.value)}
-        onKeyPress={e => e.key === "Enter" && login()}
-      />
-      
-      <button
-        onClick={login}
-        style={{
-          width: "100%",
-          padding: 12,
-          background: "#007bff",
-          color: "white",
-          border: "none",
-          borderRadius: 4,
-          cursor: "pointer",
-          fontSize: 16
-        }}
-      >
-        Giriş Yap
-      </button>
+    <div style={styles.container}>
+      <div style={styles.box}>
+        <div style={styles.logoSection}>
+          <div style={styles.logo}>NEXAVEN</div>
+          <p style={styles.subtitle}>Hoş Geldiniz</p>
+        </div>
 
-      <div style={{ marginTop: 20, textAlign: "center" }}>
-        <a href="/" style={{ color: "#007bff", textDecoration: "none" }}>
-          ← Ana Sayfaya Dön
-        </a>
+        <form onSubmit={handleLogin} style={styles.form}>
+          {error && <div style={styles.error}>{error}</div>}
+
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>Kullanıcı Adı</label>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              style={styles.input}
+              placeholder="Kullanıcı adınızı girin"
+              required
+            />
+          </div>
+
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>Şifre</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              style={styles.input}
+              placeholder="Şifrenizi girin"
+              required
+            />
+          </div>
+
+          <button type="submit" style={styles.submitBtn} disabled={loading}>
+            {loading ? "Giriş Yapılıyor..." : "Giriş Yap"}
+          </button>
+        </form>
+
+        <div style={styles.footer}>
+          <span style={styles.footerText}>Henüz hesabınız yok mu? </span>
+          <Link to="/register" style={styles.link}>Kayıt Ol</Link>
+        </div>
+
+        <div style={styles.backHome}>
+          <Link to="/" style={styles.homeLink}>← Ana Sayfaya Dön</Link>
+        </div>
       </div>
     </div>
   );
 }
+
+const styles = {
+  container: {
+    minHeight: "100vh",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    background: "linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%)",
+    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+    padding: 20,
+  },
+  box: {
+    background: "rgba(26, 31, 58, 0.9)",
+    padding: "50px 60px",
+    borderRadius: 16,
+    border: "1px solid rgba(0, 183, 255, 0.3)",
+    maxWidth: 450,
+    width: "100%",
+    boxShadow: "0 8px 32px rgba(0, 183, 255, 0.1)",
+  },
+  logoSection: {
+    textAlign: "center",
+    marginBottom: 40,
+  },
+  logo: {
+    fontSize: 36,
+    fontWeight: "bold",
+    background: "linear-gradient(90deg, #00b7ff, #0066ff)",
+    WebkitBackgroundClip: "text",
+    WebkitTextFillColor: "transparent",
+    letterSpacing: 4,
+    marginBottom: 10,
+  },
+  subtitle: {
+    fontSize: 18,
+    color: "#aaa",
+    margin: 0,
+  },
+  form: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 20,
+  },
+  inputGroup: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 8,
+  },
+  label: {
+    fontSize: 14,
+    color: "#00b7ff",
+    fontWeight: "500",
+  },
+  input: {
+    padding: "14px 18px",
+    background: "rgba(10, 14, 39, 0.6)",
+    border: "1px solid rgba(0, 183, 255, 0.3)",
+    borderRadius: 8,
+    color: "#fff",
+    fontSize: 14,
+    transition: "border-color 0.3s",
+  },
+  error: {
+    padding: "12px",
+    background: "rgba(220, 53, 69, 0.2)",
+    border: "1px solid #dc3545",
+    borderRadius: 8,
+    color: "#ff6b6b",
+    fontSize: 14,
+    textAlign: "center",
+  },
+  submitBtn: {
+    padding: "14px",
+    background: "linear-gradient(135deg, #00b7ff, #0066ff)",
+    color: "#fff",
+    border: "none",
+    borderRadius: 8,
+    fontSize: 16,
+    fontWeight: "bold",
+    cursor: "pointer",
+    marginTop: 10,
+    transition: "transform 0.2s, box-shadow 0.2s",
+    boxShadow: "0 4px 15px rgba(0, 183, 255, 0.3)",
+  },
+  footer: {
+    marginTop: 30,
+    textAlign: "center",
+  },
+  footerText: {
+    color: "#aaa",
+    fontSize: 14,
+  },
+  link: {
+    color: "#00b7ff",
+    textDecoration: "none",
+    fontWeight: "bold",
+    transition: "color 0.3s",
+  },
+  backHome: {
+    marginTop: 20,
+    textAlign: "center",
+  },
+  homeLink: {
+    color: "#666",
+    textDecoration: "none",
+    fontSize: 14,
+    transition: "color 0.3s",
+  },
+};
