@@ -353,5 +353,6 @@ curl -X POST https://nexaven.com.tr/api/license/check \
 ## Support
 
 For API support or questions:
-- GitHub Issues: https://github.com/your-username/nexaven/issues
+- GitHub Repository: https://github.com/kbozurdilerim/nexavenv2
+- GitHub Issues: https://github.com/kbozurdilerim/nexavenv2/issues
 - Email: admin@nexaven.com.tr

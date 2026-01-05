@@ -13,8 +13,11 @@ Bu kılavuz, Nexaven'i GitHub'dan Hostinger VPS'e deploy etmek için adım adım
 
 ### 1.1 GitHub'da Yeni Repo Oluşturun
 
+✅ Reponuz hazır: https://github.com/kbozurdilerim/nexavenv2
+
+Eğer yeni repo oluşturmak isterseniz:
 1. GitHub'a gidin: https://github.com/new
-2. Repository adı: `nexaven`
+2. Repository adı: `nexavenv2`
 3. Private veya Public seçin
 4. **"Create repository"** tıklayın
 
@@ -36,8 +39,8 @@ git commit -m "Initial commit - Nexaven production ready"
 # Ana branch'i main olarak ayarla
 git branch -M main
 
-# Remote repository ekle (KENDİ KULLANICI ADINIZI YAZIN)
-git remote add origin https://github.com/KULLANICI_ADINIZ/nexaven.git
+# Remote repository ekle
+git remote add origin https://github.com/kbozurdilerim/nexavenv2.git
 
 # GitHub'a push et
 git push -u origin main
@@ -49,15 +52,58 @@ git push -u origin main
 
 ## 🖥️ ADIM 2: Hostinger VPS Hazırlığı
 
-### 2.1 VPS'e SSH ile Bağlanın
+### 2.1 VPS'e Bağlanma (2 Yöntem)
 
-Hostinger panelinden VPS'inize SSH bilgilerini alın:
+#### 🌐 YÖNTEM 1: Web Panel (Önerilen - İlk Deneme)
+
+1. Hostinger'a giriş yapın: https://hpanel.hostinger.com
+2. Sol menüden **"VPS"** seçin
+3. VPS'inizi seçin
+4. **"Browser Terminal"** veya **"Web SSH"** butonuna tıklayın
+5. Terminal açılacak - direkt komut girebilirsiniz!
+
+#### 🔑 YÖNTEM 2: SSH Terminal (Çalışmazsa)
+
+Windows PowerShell veya terminal açın:
 
 ```bash
 ssh root@VPS_IP_ADRESI
 ```
 
-### 2.2 Sistem Güncellemesi
+**Not**: İlk bağlantıda "Are you sure?" sorusu gelirse `yes` yazın.
+
+---
+
+## 🐳 ADIM 2A: Web Panel ile Hızlı Kurulum (Alternatif)
+
+Eğer SSH kullanmak istemiyorsanız, Hostinger Web Panel'den de Docker kurabilirsiniz:
+
+### Hostinger VPS Panel Üzerinden
+
+1. **VPS Dashboard** → **Operating System** → **Docker** seçeneğini bulun
+2. Bazı planlarda Docker pre-installed olabilir
+3. Veya **Applications** → **Docker** → **Install** seçeneği olabilir
+
+### Web Terminal'den Kurulum
+
+Web terminal açıksa (Browser Terminal), doğrudan şu komutları çalıştırın:
+
+```bash
+# Docker kurulum script
+curl -fsSL https://get.docker.com -o get-docker.sh
+sh get-docker.sh
+
+# Docker Compose
+apt-get install docker-compose-plugin -y
+
+# Kontrol
+docker --version
+docker compose version
+```
+
+**Not**: Web terminal çalışmazsa veya yavaşsa, SSH yöntemini kullanın.
+
+---
 
 ```bash
 apt update && apt upgrade -y
@@ -129,11 +175,11 @@ ping nexaven.com.tr
 # Home dizinine gidin
 cd ~
 
-# GitHub'dan klonlayın (KENDİ REPO ADRESİNİZİ YAZIN)
-git clone https://github.com/KULLANICI_ADINIZ/nexaven.git
+# GitHub'dan klonlayın
+git clone https://github.com/kbozurdilerim/nexavenv2.git
 
 # Proje klasörüne girin
-cd nexaven
+cd nexavenv2
 ```
 
 ### 4.2 Ortam Değişkenlerini Ayarlayın
@@ -378,7 +424,7 @@ exit
 GitHub'a yeni kod push ettikten sonra VPS'te:
 
 ```bash
-cd ~/nexaven
+cd ~/nexavenv2
 git pull origin main
 docker compose down
 docker compose up -d --build

@@ -54,8 +54,8 @@ nexaven/
 ### 1. Depoyu Klonlayın
 
 ```bash
-git clone https://github.com/kullanici-adiniz/nexaven.git
-cd nexaven
+git clone https://github.com/kbozurdilerim/nexavenv2.git
+cd nexavenv2
 ```
 
 ### 2. Ortam Değişkenlerini Ayarlayın
@@ -311,7 +311,7 @@ git init
 git add .
 git commit -m "Initial Nexaven commit"
 git branch -M main
-git remote add origin https://github.com/kullanici-adiniz/nexaven.git
+git remote add origin https://github.com/kbozurdilerim/nexavenv2.git
 git push -u origin main
 ```
 
@@ -332,12 +332,14 @@ apt-get install docker-compose-plugin
 3. Projeyi klonlayın ve başlatın:
 
 ```bash
-git clone https://github.com/kullanici-adiniz/nexaven.git
-cd nexaven
+git clone https://github.com/kbozurdilerim/nexavenv2.git
+cd nexavenv2
 docker compose up -d
 ```
 
 ## 🆘 Sorun Giderme
+
+**GitHub Repository**: https://github.com/kbozurdilerim/nexavenv2
 
 ### Backend bağlanamıyor
 
@@ -370,7 +372,7 @@ MIT License - Ticari kullanım serbesttir.
 
 ## 🤝 Destek
 
-- GitHub Issues: [github.com/kullanici-adiniz/nexaven/issues](https://github.com/kullanici-adiniz/nexaven/issues)
+- GitHub Issues: [github.com/kbozurdilerim/nexavenv2/issues](https://github.com/kbozurdilerim/nexavenv2/issues)
 - Email: admin@nexaven.com.tr
 
 ---
