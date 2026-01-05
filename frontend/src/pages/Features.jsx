@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
 export default function Features() {
   const [features, setFeatures] = useState([]);
@@ -40,10 +41,10 @@ export default function Features() {
       <header style={styles.header}>
         <div style={styles.logo}>NEXAVEN</div>
         <nav style={styles.nav}>
-          <a href="/" style={styles.navLink}>Ana Sayfa</a>
-          <a href="/showcase" style={styles.navLink}>Araç Vitrini</a>
-          <a href="/features" style={styles.navLinkActive}>Özellikler</a>
-          <a href="/login" style={styles.navLink}>Giriş</a>
+          <Link to="/" style={styles.navLink}>Ana Sayfa</Link>
+          <Link to="/showcase" style={styles.navLink}>Araç Vitrini</Link>
+          <Link to="/features" style={styles.navLinkActive}>Özellikler</Link>
+          <Link to="/login" style={styles.navLink}>Giriş</Link>
         </nav>
       </header>
 
@@ -72,7 +73,7 @@ export default function Features() {
         <p style={styles.ctaText}>
           Kontrol Paneli • Sunucu Listesi • Lig & Etkinlikler • İstatistikler
         </p>
-        <a href="/login" style={styles.ctaBtn}>Şimdi Başlayın</a>
+        <Link to="/login" style={styles.ctaBtn}>Şimdi Başlayın</Link>
       </section>
 
       {/* Footer */}

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
 export default function Showcase() {
   const [vehicles, setVehicles] = useState([]);
@@ -52,10 +53,10 @@ export default function Showcase() {
       <header style={styles.header}>
         <div style={styles.logo}>NEXAVEN</div>
         <nav style={styles.nav}>
-          <a href="/" style={styles.navLink}>Ana Sayfa</a>
-          <a href="/showcase" style={styles.navLinkActive}>Araç Vitrini</a>
-          <a href="/features" style={styles.navLink}>Özellikler</a>
-          <a href="/login" style={styles.navLink}>Giriş</a>
+          <Link to="/" style={styles.navLink}>Ana Sayfa</Link>
+          <Link to="/showcase" style={styles.navLinkActive}>Araç Vitrini</Link>
+          <Link to="/features" style={styles.navLink}>Özellikler</Link>
+          <Link to="/login" style={styles.navLink}>Giriş</Link>
         </nav>
       </header>
 

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
 export default function Home() {
   const [pricing, setPricing] = useState([]);
@@ -20,10 +21,10 @@ export default function Home() {
       <header style={styles.header}>
         <div style={styles.logo}>NEXAVEN</div>
         <nav style={styles.nav}>
-          <a href="/" style={styles.navLink}>Ana Sayfa</a>
-          <a href="/showcase" style={styles.navLink}>Araç Vitrini</a>
-          <a href="/features" style={styles.navLink}>Özellikler</a>
-          <a href="/login" style={styles.navLink}>Giriş</a>
+          <Link to="/" style={styles.navLink}>Ana Sayfa</Link>
+          <Link to="/showcase" style={styles.navLink}>Araç Vitrini</Link>
+          <Link to="/features" style={styles.navLink}>Özellikler</Link>
+          <Link to="/login" style={styles.navLink}>Giriş</Link>
         </nav>
       </header>
 
@@ -37,8 +38,8 @@ export default function Home() {
             Nexaven ile Performansı Yükseltin.
           </p>
           <div style={styles.heroButtons}>
-            <a href="/showcase" style={styles.btnPrimary}>Araç Vitrini</a>
-            <a href="/features" style={styles.btnSecondary}>Özellikleri Keşfet</a>
+            <Link to="/showcase" style={styles.btnPrimary}>Araç Vitrini</Link>
+            <Link to="/features" style={styles.btnSecondary}>Özellikleri Keşfet</Link>
           </div>
         </div>
         <div style={styles.heroOverlay}></div>
@@ -90,7 +91,7 @@ export default function Home() {
                     <li key={i} style={styles.pricingFeature}>{f}</li>
                   ))}
                 </ul>
-                <a href="/login" style={styles.btnPrimary}>Satın Al</a>
+                <Link to="/login" style={styles.btnPrimary}>Satın Al</Link>
               </div>
             ))}
           </div>
@@ -120,7 +121,7 @@ export default function Home() {
       <section style={styles.cta}>
         <h2 style={styles.ctaTitle}>Sadelik ve Performansın Buluştuğu Dijital Platform</h2>
         <p style={styles.ctaText}>Nexaven.com.tr ile yarış tutkunları için güçlü bir platform</p>
-        <a href="/login" style={styles.btnCta}>Kontrol Paneline Git</a>
+        <Link to="/login" style={styles.btnCta}>Kontrol Paneline Git</Link>
       </section>
 
       {/* Footer */}
