@@ -24,7 +24,18 @@ export default function Login() {
 
       if (data.token) {
         localStorage.setItem("token", data.token);
-        navigate("/admin");
+        
+        // Kullanıcı bilgisini al ve role'e göre yönlendir
+        const userRes = await fetch("/api/auth/me", {
+          headers: { Authorization: `Bearer ${data.token}` }
+        });
+        const userData = await userRes.json();
+        
+        if (userData.role === "admin") {
+          navigate("/admin");
+        } else {
+          navigate("/panel");
+        }
       } else {
         setError(data.error || "Giriş başarısız");
       }

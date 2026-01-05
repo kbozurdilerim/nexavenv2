@@ -5,6 +5,20 @@ const db = require("../db/sqlite");
 
 const router = express.Router();
 
+// Middleware to verify JWT
+function verifyToken(req, res, next) {
+  const token = req.headers.authorization?.replace("Bearer ", "");
+  if (!token) return res.status(401).json({ error: "Token gerekli" });
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (err) {
+    return res.status(401).json({ error: "Geçersiz token" });
+  }
+}
+
 router.post("/login", (req, res) => {
   const { username, password } = req.body;
 
@@ -24,6 +38,18 @@ router.post("/login", (req, res) => {
       );
 
       res.json({ token });
+    }
+  );
+});
+
+// Get current user info
+router.get("/me", verifyToken, (req, res) => {
+  db.get(
+    "SELECT id, username, email, role, user_type, company_name, created_at FROM users WHERE id = ?",
+    [req.user.id],
+    (err, user) => {
+      if (err || !user) return res.status(404).json({ error: "Kullanıcı bulunamadı" });
+      res.json(user);
     }
   );
 });
