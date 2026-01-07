@@ -6,7 +6,8 @@ import { apiGet } from "./api";
 export default function ZorluLayout() {
   const location = useLocation();
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-  const isAuthPage = location.pathname === "/zorlu.ecu/login" || location.pathname === "/zorlu.ecu/register";
+  // Support both /zorlu.ecu and /zorlu-ecu paths
+  const isAuthPage = location.pathname.match(/\/(zorlu\.ecu|zorlu-ecu)\/(login|register)$/);
 
   if (!token && !isAuthPage) {
     return <Navigate to="/zorlu.ecu/login" replace />;
@@ -20,7 +21,12 @@ export default function ZorluLayout() {
     })();
   }, [token]);
 
-  const isActive = (href) => (location.pathname === href ? "active" : "");
+  const isActive = (href) => {
+    // Match both dotted and dashed versions
+    const dotted = href;
+    const dashed = href.replace(/\.ecu/, "-ecu");
+    return (location.pathname === dotted || location.pathname === dashed) ? "active" : "";
+  };
 
   return (
     <div data-zorlu-ecu style={{ display: "flex", minHeight: "100vh" }}>

@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { lazy, Suspense } from "react";
 
 // Main routes
@@ -41,6 +41,7 @@ export default function App() {
         <Route path="/features" element={<Features />} />
         {/* Zorlu ECU isolated route group with lazy loading */}
         <Route path="/zorlu.ecu" element={<Suspense fallback={<LoadingSpinner />}><ZorluLayout /></Suspense>}>
+          <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="login" element={<Suspense fallback={<LoadingSpinner />}><ZorluLogin /></Suspense>} />
           <Route path="register" element={<Suspense fallback={<LoadingSpinner />}><ZorluRegister /></Suspense>} />
           <Route path="dashboard" element={<Suspense fallback={<LoadingSpinner />}><ZorluDashboard /></Suspense>} />
@@ -51,6 +52,7 @@ export default function App() {
         </Route>
         {/* Alias: dashed path to support /zorlu-ecu */}
         <Route path="/zorlu-ecu" element={<Suspense fallback={<LoadingSpinner />}><ZorluLayout /></Suspense>}>
+          <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="login" element={<Suspense fallback={<LoadingSpinner />}><ZorluLogin /></Suspense>} />
           <Route path="register" element={<Suspense fallback={<LoadingSpinner />}><ZorluRegister /></Suspense>} />
           <Route path="dashboard" element={<Suspense fallback={<LoadingSpinner />}><ZorluDashboard /></Suspense>} />
