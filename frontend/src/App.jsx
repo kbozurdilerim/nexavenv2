@@ -49,6 +49,16 @@ export default function App() {
           <Route path="chat" element={<Suspense fallback={<LoadingSpinner />}><ZorluChat /></Suspense>} />
           <Route path="admin" element={<Suspense fallback={<LoadingSpinner />}><ZorluAdmin /></Suspense>} />
         </Route>
+        {/* Alias: dashed path to support /zorlu-ecu */}
+        <Route path="/zorlu-ecu" element={<Suspense fallback={<LoadingSpinner />}><ZorluLayout /></Suspense>}>
+          <Route path="login" element={<Suspense fallback={<LoadingSpinner />}><ZorluLogin /></Suspense>} />
+          <Route path="register" element={<Suspense fallback={<LoadingSpinner />}><ZorluRegister /></Suspense>} />
+          <Route path="dashboard" element={<Suspense fallback={<LoadingSpinner />}><ZorluDashboard /></Suspense>} />
+          <Route path="ai.learning" element={<Suspense fallback={<LoadingSpinner />}><ZorluAILearning /></Suspense>} />
+          <Route path="tuning" element={<Suspense fallback={<LoadingSpinner />}><ZorluTuning /></Suspense>} />
+          <Route path="chat" element={<Suspense fallback={<LoadingSpinner />}><ZorluChat /></Suspense>} />
+          <Route path="admin" element={<Suspense fallback={<LoadingSpinner />}><ZorluAdmin /></Suspense>} />
+        </Route>
       </Routes>
     </BrowserRouter>
   );
