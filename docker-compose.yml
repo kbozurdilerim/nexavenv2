@@ -10,6 +10,19 @@ services:
       JWT_SECRET: ${JWT_SECRET:-NEXAVEN_DEFAULT_SECRET_CHANGE_ME}
     volumes:
       - ./backend/data:/app/data
+      - ./ai_worker.py:/app/ai_worker.py
+    restart: always
+    depends_on:
+      - ai-worker
+
+  ai-worker:
+    image: python:3.10-slim
+    container_name: nexaven-ai-worker
+    working_dir: /app
+    volumes:
+      - ./ai_worker.py:/app/ai_worker.py
+      - ./backend/data:/app/data
+    entrypoint: ["sleep", "99999"]
     restart: always
 
   frontend:
