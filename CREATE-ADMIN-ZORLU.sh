@@ -17,7 +17,7 @@ echo "📝 Admin kullanıcı oluşturuluyor..."
 # Node script ile admin oluştur
 docker exec -i "$CONTAINER_ID" node << 'EOFNODE'
 const sqlite3 = require("sqlite3").verbose();
-const crypto = require("crypto");
+const bcrypt = require("bcrypt");
 const path = require("path");
 
 const db = new sqlite3.Database("./data/nexaven.db");
@@ -26,26 +26,25 @@ const username = "admin";
 const password = "Admin@2026Zorlu";
 const email = "admin@nexaven.com.tr";
 
-// SHA256 hash
-const hashedPwd = crypto.createHash("sha256").update(password).digest("hex");
-
-db.run(
-  `INSERT OR REPLACE INTO users (username, password, email, role, user_type, created_at)
-   VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`,
-  [username, hashedPwd, email, "admin", "company"],
-  (err) => {
-    if (err) {
-      console.error("❌ Admin oluşturma hatası:", err.message);
-      process.exit(1);
-    } else {
-      console.log("✅ Admin kullanıcı başarıyla oluşturuldu!");
-      console.log("📌 Kullanıcı: admin");
-      console.log("📌 Şifre: Admin@2026Zorlu");
-      console.log("📌 Email: admin@nexaven.com.tr");
+bcrypt.hash(password, 10).then((hashedPwd) => {
+  db.run(
+    `INSERT OR REPLACE INTO users (id, username, password, email, role, user_type, created_at)
+     VALUES ((SELECT id FROM users WHERE username = ?), ?, ?, ?, ?, ?, COALESCE((SELECT created_at FROM users WHERE username = ?), CURRENT_TIMESTAMP))`,
+    [username, username, hashedPwd, email, "admin", "company", username],
+    (err) => {
+      if (err) {
+        console.error("❌ Admin oluşturma hatası:", err.message);
+        process.exit(1);
+      } else {
+        console.log("✅ Admin kullanıcı başarıyla oluşturuldu!");
+        console.log("📌 Kullanıcı: admin");
+        console.log("📌 Şifre: Admin@2026Zorlu");
+        console.log("📌 Email: admin@nexaven.com.tr");
+      }
+      db.close();
     }
-    db.close();
-  }
-);
+  );
+}).catch((e) => { console.error(e); process.exit(1); });
 EOFNODE
 
 echo ""

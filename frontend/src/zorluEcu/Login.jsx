@@ -26,16 +26,27 @@ export default function ZorluLogin() {
   }
 
   return (
-    <div style={{ maxWidth: 360 }}>
-      <h3>Zorlu ECU — Giriş</h3>
-      <form onSubmit={onSubmit} style={{ display: "grid", gap: 8 }}>
-        <input placeholder="Kullanıcı adı" value={username} onChange={e => setUsername(e.target.value)} />
-        <input placeholder="Şifre" type="password" value={password} onChange={e => setPassword(e.target.value)} />
-        {error && <div style={{ color: "crimson" }}>{error}</div>}
-        <button type="submit">Giriş Yap</button>
-      </form>
-      <div style={{ marginTop: 8 }}>
-        Hesabın yok mu? <Link to="/zorlu.ecu/register">Kayıt ol</Link>
+    <div style={{ width: "100%" }}>
+      <div style={{
+        background: "var(--panel)",
+        border: "1px solid var(--border)",
+        borderRadius: 10,
+        padding: 24,
+        boxShadow: "0 10px 30px rgba(0,0,0,0.3)"
+      }}>
+        <div style={{ textAlign: "center", marginBottom: 16 }}>
+          <h2 style={{ margin: 0, fontSize: 28, background: "linear-gradient(135deg, var(--accent), var(--accent-2))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Zorlu ECU</h2>
+          <div className="muted" style={{ fontSize: 13 }}>Yapay Zeka Destekli ECU Platformu</div>
+        </div>
+        <form onSubmit={onSubmit} style={{ display: "grid", gap: 12 }}>
+          <input placeholder="Kullanıcı adı" value={username} onChange={e => setUsername(e.target.value)} style={{ padding: 12 }} />
+          <input placeholder="Şifre" type="password" value={password} onChange={e => setPassword(e.target.value)} style={{ padding: 12 }} />
+          {error && <div style={{ background: "rgba(255,77,79,0.15)", border: "1px solid var(--accent)", color: "var(--accent)", padding: 10, borderRadius: 6 }}>{error}</div>}
+          <button type="submit" style={{ padding: 12, fontWeight: 600 }}>Giriş Yap</button>
+        </form>
+        <div style={{ marginTop: 12, textAlign: "center" }}>
+          Hesabın yok mu? <Link to="/zorlu.ecu/register">Kayıt ol</Link>
+        </div>
       </div>
     </div>
   );

@@ -13,6 +13,17 @@ export default function ZorluLayout() {
     return <Navigate to="/zorlu.ecu/login" replace />;
   }
 
+  // For auth pages, render a centered minimal layout without sidebar
+  if (isAuthPage) {
+    return (
+      <div data-zorlu-ecu style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+        <main className="zorlu-main" style={{ width: "100%", maxWidth: 520 }}>
+          <Outlet />
+        </main>
+      </div>
+    );
+  }
+
   const [me, setMe] = useState(null);
   useEffect(() => {
     (async () => {
