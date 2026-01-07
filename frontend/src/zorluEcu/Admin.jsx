@@ -1,6 +1,214 @@
 import { useEffect, useState } from "react";
 import { apiGet, apiPost } from "./api";
 
+const adminStyles = `
+  .admin-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px;
+  }
+
+  .admin-header {
+    margin-bottom: 32px;
+    text-align: center;
+  }
+
+  .admin-header h2 {
+    font-size: 32px;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .admin-header p {
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .admin-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .admin-tab-btn {
+    padding: 10px 16px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -14px;
+  }
+
+  .admin-tab-btn:hover {
+    color: var(--accent);
+  }
+
+  .admin-tab-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  .admin-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .stat-card {
+    background: linear-gradient(135deg, var(--panel) 0%, rgba(255,77,79,0.05) 100%);
+    border: 1px solid rgba(255,77,79,0.2);
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+  }
+
+  .stat-card-label {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .stat-card-value {
+    font-size: 28px;
+    font-weight: bold;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--panel);
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .admin-table thead {
+    background: rgba(255,77,79,0.1);
+  }
+
+  .admin-table th {
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .admin-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+
+  .admin-table tbody tr:hover {
+    background: rgba(255,77,79,0.05);
+  }
+
+  .admin-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  .status-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .status-completed {
+    background: rgba(0,255,100,0.15);
+    color: #00ff64;
+  }
+
+  .status-failed {
+    background: rgba(255,0,0,0.15);
+    color: #ff4d4f;
+  }
+
+  .status-processing {
+    background: rgba(255,165,0,0.15);
+    color: var(--accent-2);
+  }
+
+  .role-select {
+    padding: 6px 10px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: inherit;
+    cursor: pointer;
+    font-size: 13px;
+  }
+
+  .role-select:hover {
+    border-color: var(--accent);
+  }
+
+  .admin-error {
+    background: rgba(255,77,79,0.15);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 12px 16px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    font-size: 14px;
+  }
+
+  .admin-action-btn {
+    padding: 6px 12px;
+    background: rgba(255,77,79,0.2);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s;
+  }
+
+  .admin-action-btn:hover {
+    background: var(--accent);
+    color: white;
+  }
+
+  .job-detail-panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+
+  .job-detail-panel pre {
+    background: var(--bg);
+    padding: 12px;
+    border-radius: 4px;
+    overflow-x: auto;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+`;
+
 export default function ZorluAdmin() {
   const [tab, setTab] = useState("stats");
   const [stats, setStats] = useState(null);
@@ -45,56 +253,87 @@ export default function ZorluAdmin() {
   }
 
   return (
-    <div>
-      <h3>Admin Panel</h3>
-      <div style={{ display: "flex", gap: 8, marginBottom: 16, borderBottom: "1px solid var(--border)", paddingBottom: 8 }}>
-        {["stats", "users", "jobs", "files"].map(t => (
-          <button key={t} onClick={() => setTab(t)} style={{ background: tab === t ? "var(--accent)" : "transparent", color: tab === t ? "#fff" : "inherit" }}>
-            {t === "stats" ? "İstatistikler" : t === "users" ? "Kullanıcılar" : t === "jobs" ? "İşler" : "Dosyalar"}
-          </button>
-        ))}
-      </div>
+    <div data-zorlu-ecu style={{ minHeight: "100vh", background: "var(--bg)" }}>
+      <style>{adminStyles}</style>
+      <div className="admin-container">
+        <div className="admin-header">
+          <h2>⚙️ Admin Paneli</h2>
+          <p>Zorlu ECU Sistem Yönetimi</p>
+        </div>
 
-      {err && <div style={{ color: "var(--accent)", marginBottom: 12 }}>{err}</div>}
+        <div className="admin-tabs">
+          {["stats", "users", "jobs", "files"].map(t => (
+            <button
+              key={t}
+              className={`admin-tab-btn ${tab === t ? "active" : ""}`}
+              onClick={() => { setTab(t); setSelectedJob(null); }}
+            >
+              {t === "stats" ? "📊 İstatistikler" : t === "users" ? "👥 Kullanıcılar" : t === "jobs" ? "⚡ İşler" : "📁 Dosyalar"}
+            </button>
+          ))}
+        </div>
+
+        {err && <div className="admin-error">{err}</div>}
 
       {tab === "stats" && stats && (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, maxWidth: 500 }}>
-          <div className="card"><div>Kullanıcılar</div><div style={{ fontSize: 24, fontWeight: "bold" }}>{stats.totalUsers}</div></div>
-          <div className="card"><div>Toplam İşler</div><div style={{ fontSize: 24, fontWeight: "bold" }}>{stats.totalJobs}</div></div>
-          <div className="card"><div>Tamamlanan</div><div style={{ fontSize: 24, fontWeight: "bold", color: "seagreen" }}>{stats.completedJobs}</div></div>
-          <div className="card"><div>Başarısız</div><div style={{ fontSize: 24, fontWeight: "bold", color: "var(--accent)" }}>{stats.failedJobs}</div></div>
-          <div className="card" style={{ gridColumn: "1/-1" }}><div>Dosyalar</div><div style={{ fontSize: 24, fontWeight: "bold" }}>{stats.totalFiles}</div></div>
+        <div className="admin-stats">
+          <div className="stat-card">
+            <div className="stat-card-label">Toplam Kullanıcılar</div>
+            <div className="stat-card-value">{stats.totalUsers}</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-card-label">Tuning İşleri</div>
+            <div className="stat-card-value">{stats.totalJobs}</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-card-label">Tamamlanan</div>
+            <div className="stat-card-value" style={{ color: "seagreen" }}>{stats.completedJobs}</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-card-label">Başarısız</div>
+            <div className="stat-card-value" style={{ color: "var(--accent)" }}>{stats.failedJobs}</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-card-label">Yüklenen Dosyalar</div>
+            <div className="stat-card-value">{stats.totalFiles}</div>
+          </div>
         </div>
       )}
 
       {tab === "users" && (
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <table className="admin-table">
           <thead>
-            <tr style={{ borderBottom: "1px solid var(--border)" }}>
-              <th style={{ textAlign: "left", padding: 8 }}>ID</th>
-              <th style={{ textAlign: "left", padding: 8 }}>Kullanıcı</th>
-              <th style={{ textAlign: "left", padding: 8 }}>Email</th>
-              <th style={{ textAlign: "left", padding: 8 }}>Rol</th>
-              <th style={{ textAlign: "left", padding: 8 }}>İşlem</th>
+            <tr>
+              <th>ID</th>
+              <th>Kullanıcı Adı</th>
+              <th>Email</th>
+              <th>Rol</th>
+              <th>Kayıt Tarihi</th>
             </tr>
           </thead>
           <tbody>
-            {users.map(u => (
-              <tr key={u.id} style={{ borderBottom: "1px solid var(--border)" }}>
-                <td style={{ padding: 8 }}>{u.id}</td>
-                <td style={{ padding: 8 }}>{u.username}</td>
-                <td style={{ padding: 8, fontSize: 12, color: "var(--muted)" }}>{u.email}</td>
-                <td style={{ padding: 8 }}>
-                  <select value={u.role} onChange={e => changeRole(u.id, e.target.value)}>
-                    <option value="user">user</option>
-                    <option value="admin">admin</option>
-                  </select>
-                </td>
-                <td style={{ padding: 8 }}>
-                  <small style={{ color: "var(--muted)" }}>{new Date(u.created_at).toLocaleDateString("tr-TR")}</small>
-                </td>
-              </tr>
-            ))}
+            {users.length === 0 ? (
+              <tr><td colSpan="5" style={{ textAlign: "center", color: "var(--muted)" }}>Kullanıcı bulunamadı</td></tr>
+            ) : (
+              users.map(u => (
+                <tr key={u.id}>
+                  <td>#{u.id}</td>
+                  <td style={{ fontWeight: 500 }}>{u.username}</td>
+                  <td style={{ fontSize: 12, color: "var(--muted)" }}>{u.email || "-"}</td>
+                  <td>
+                    <select
+                      className="role-select"
+                      value={u.role}
+                      onChange={e => changeRole(u.id, e.target.value)}
+                    >
+                      <option value="user">👤 Kullanıcı</option>
+                      <option value="admin">⚙️ Admin</option>
+                    </select>
+                  </td>
+                  <td style={{ fontSize: 12, color: "var(--muted)" }}>{new Date(u.created_at).toLocaleDateString("tr-TR")}</td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       )}
@@ -102,38 +341,46 @@ export default function ZorluAdmin() {
       {tab === "jobs" && (
         <div>
           {selectedJob ? (
-            <div className="card" style={{ marginBottom: 12 }}>
-              <button onClick={() => setSelectedJob(null)}>← Geri</button>
-              <h4>Job #{selectedJob.id}</h4>
+            <div className="job-detail-panel">
+              <button className="admin-action-btn" onClick={() => setSelectedJob(null)} style={{ marginBottom: 12 }}>
+                ← Geri Dön
+              </button>
+              <h3>⚡ İş Detayı #{selectedJob.id}</h3>
               <pre>{JSON.stringify(selectedJob, null, 2)}</pre>
             </div>
           ) : (
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <table className="admin-table">
               <thead>
-                <tr style={{ borderBottom: "1px solid var(--border)" }}>
-                  <th style={{ textAlign: "left", padding: 8 }}>ID</th>
-                  <th style={{ textAlign: "left", padding: 8 }}>Kullanıcı</th>
-                  <th style={{ textAlign: "left", padding: 8 }}>Stratejisi</th>
-                  <th style={{ textAlign: "left", padding: 8 }}>Durum</th>
-                  <th style={{ textAlign: "left", padding: 8 }}>Tarih</th>
-                  <th style={{ textAlign: "left", padding: 8 }}>İşlem</th>
+                <tr>
+                  <th>ID</th>
+                  <th>Kullanıcı</th>
+                  <th>Strateji</th>
+                  <th>Model</th>
+                  <th>Durum</th>
+                  <th>Tarih</th>
+                  <th>İşlem</th>
                 </tr>
               </thead>
               <tbody>
-                {jobs.map(j => (
-                  <tr key={j.id} style={{ borderBottom: "1px solid var(--border)" }}>
-                    <td style={{ padding: 8 }}>{j.id}</td>
-                    <td style={{ padding: 8 }}>{j.username}</td>
-                    <td style={{ padding: 8, fontSize: 12 }}>{j.strategy}</td>
-                    <td style={{ padding: 8 }}>
-                      <span style={{ background: j.status === "completed" ? "rgba(0,255,0,0.1)" : j.status === "failed" ? "rgba(255,0,0,0.1)" : "rgba(255,165,0,0.1)", padding: "2px 6px", borderRadius: 4, fontSize: 12 }}>
-                        {j.status}
-                      </span>
-                    </td>
-                    <td style={{ padding: 8, fontSize: 11, color: "var(--muted)" }}>{new Date(j.created_at).toLocaleDateString("tr-TR")}</td>
-                    <td style={{ padding: 8 }}><button onClick={() => viewJob(j.id)}>Detay</button></td>
-                  </tr>
-                ))}
+                {jobs.length === 0 ? (
+                  <tr><td colSpan="7" style={{ textAlign: "center", color: "var(--muted)" }}>İş bulunamadı</td></tr>
+                ) : (
+                  jobs.map(j => (
+                    <tr key={j.id}>
+                      <td>#{j.id}</td>
+                      <td style={{ fontWeight: 500 }}>{j.username}</td>
+                      <td style={{ fontSize: 12 }}>{j.strategy}</td>
+                      <td style={{ fontSize: 12, color: "var(--accent-2)" }}>{j.model || "balanced"}</td>
+                      <td>
+                        <span className={`status-badge status-${j.status}`}>
+                          {j.status === "completed" ? "✓ Tamamlandı" : j.status === "failed" ? "✗ Başarısız" : j.status === "processing" ? "⏳ İşlemde" : "⏱ Beklemede"}
+                        </span>
+                      </td>
+                      <td style={{ fontSize: 12, color: "var(--muted)" }}>{new Date(j.created_at).toLocaleDateString("tr-TR")}</td>
+                      <td><button className="admin-action-btn" onClick={() => viewJob(j.id)}>Detay</button></td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           )}
@@ -141,26 +388,32 @@ export default function ZorluAdmin() {
       )}
 
       {tab === "files" && (
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <table className="admin-table">
           <thead>
-            <tr style={{ borderBottom: "1px solid var(--border)" }}>
-              <th style={{ textAlign: "left", padding: 8 }}>ID</th>
-              <th style={{ textAlign: "left", padding: 8 }}>Kullanıcı</th>
-              <th style={{ textAlign: "left", padding: 8 }}>Dosya Adı</th>
-              <th style={{ textAlign: "left", padding: 8 }}>Boyut</th>
-              <th style={{ textAlign: "left", padding: 8 }}>Hash</th>
+            <tr>
+              <th>ID</th>
+              <th>Kullanıcı</th>
+              <th>Dosya Adı</th>
+              <th>Boyut</th>
+              <th>ECU Tipi</th>
+              <th>Hash</th>
             </tr>
           </thead>
           <tbody>
-            {files.map(f => (
-              <tr key={f.id} style={{ borderBottom: "1px solid var(--border)" }}>
-                <td style={{ padding: 8 }}>{f.id}</td>
-                <td style={{ padding: 8 }}>{f.username}</td>
-                <td style={{ padding: 8, fontSize: 11 }}>{f.original_name}</td>
-                <td style={{ padding: 8, fontSize: 11, color: "var(--muted)" }}>{(f.size / 1024).toFixed(1)} KB</td>
-                <td style={{ padding: 8, fontSize: 10, fontFamily: "monospace", color: "var(--muted)" }}>{f.checksum}</td>
-              </tr>
-            ))}
+            {files.length === 0 ? (
+              <tr><td colSpan="6" style={{ textAlign: "center", color: "var(--muted)" }}>Dosya bulunamadı</td></tr>
+            ) : (
+              files.map(f => (
+                <tr key={f.id}>
+                  <td>#{f.id}</td>
+                  <td style={{ fontWeight: 500 }}>{f.username}</td>
+                  <td style={{ fontSize: 12 }}>{f.original_name}</td>
+                  <td style={{ fontSize: 12, color: "var(--muted)" }}>{(f.size / 1024).toFixed(1)} KB</td>
+                  <td style={{ fontSize: 12, color: "var(--accent-2)" }}>{f.ecu_type || "-"}</td>
+                  <td style={{ fontSize: 10, fontFamily: "monospace", color: "var(--muted)", maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis" }}>{f.checksum}</td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       )}
