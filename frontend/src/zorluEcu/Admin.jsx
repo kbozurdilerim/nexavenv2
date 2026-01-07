@@ -217,12 +217,14 @@ export default function ZorluAdmin() {
   const [files, setFiles] = useState([]);
   const [err, setErr] = useState("");
   const [selectedJob, setSelectedJob] = useState(null);
+  const [queueStatus, setQueueStatus] = useState(null);
 
   useEffect(() => {
     if (tab === "stats") loadStats();
     if (tab === "users") loadUsers();
     if (tab === "jobs") loadJobs();
     if (tab === "files") loadFiles();
+    if (tab === "system") loadQueueStatus();
   }, [tab]);
 
   async function loadStats() {
@@ -239,6 +241,10 @@ export default function ZorluAdmin() {
 
   async function loadFiles() {
     try { const r = await apiGet("/admin/files?limit=100"); setFiles(r.files); } catch (e) { setErr("Files yükleme hatası"); }
+  }
+
+  async function loadQueueStatus() {
+    try { const r = await apiGet("/models/queue-status"); setQueueStatus(r); } catch (e) { setErr("Queue durumu alınamadı"); }
   }
 
   async function changeRole(userId, newRole) {
@@ -262,13 +268,13 @@ export default function ZorluAdmin() {
         </div>
 
         <div className="admin-tabs">
-          {["stats", "users", "jobs", "files"].map(t => (
+          {["stats", "users", "jobs", "files", "system"].map(t => (
             <button
               key={t}
               className={`admin-tab-btn ${tab === t ? "active" : ""}`}
               onClick={() => { setTab(t); setSelectedJob(null); }}
             >
-              {t === "stats" ? "📊 İstatistikler" : t === "users" ? "👥 Kullanıcılar" : t === "jobs" ? "⚡ İşler" : "📁 Dosyalar"}
+              {t === "stats" ? "📊 İstatistikler" : t === "users" ? "👥 Kullanıcılar" : t === "jobs" ? "⚡ İşler" : t === "files" ? "📁 Dosyalar" : "🧠 Sistem"}
             </button>
           ))}
         </div>
@@ -296,6 +302,35 @@ export default function ZorluAdmin() {
           <div className="stat-card">
             <div className="stat-card-label">Yüklenen Dosyalar</div>
             <div className="stat-card-value">{stats.totalFiles}</div>
+          </div>
+        </div>
+      )}
+
+      {tab === "system" && (
+        <div className="admin-stats">
+          <div className="stat-card">
+            <div className="stat-card-label">Aktif İşler</div>
+            <div className="stat-card-value">{queueStatus?.activeJobs ?? "-"}</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-card-label">Maks Worker</div>
+            <div className="stat-card-value">{queueStatus?.maxWorkers ?? "-"}</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-card-label">Bekleyen</div>
+            <div className="stat-card-value" style={{ color: "var(--accent-2)" }}>{queueStatus?.pending ?? queueStatus?.queued ?? "-"}</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-card-label">İşlemde</div>
+            <div className="stat-card-value" style={{ color: "var(--accent-2)" }}>{queueStatus?.processing ?? "-"}</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-card-label">Tamamlanan</div>
+            <div className="stat-card-value" style={{ color: "seagreen" }}>{queueStatus?.completed ?? "-"}</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-card-label">Başarısız</div>
+            <div className="stat-card-value" style={{ color: "var(--accent)" }}>{queueStatus?.failed ?? "-"}</div>
           </div>
         </div>
       )}

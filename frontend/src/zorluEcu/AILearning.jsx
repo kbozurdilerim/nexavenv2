@@ -15,6 +15,7 @@ export default function ZorluAILearning() {
       const res = await apiGet("/zorlu-ecu/files");
       setFiles(res.files || []);
       setSuggestions(res.suggestions || {});
+      return res;
     } catch {}
   };
 
@@ -33,12 +34,13 @@ export default function ZorluAILearning() {
   }
 
   return (
-    <div>
-      <h3>AI Learning — Eşleştirme</h3>
-      <div className="card" style={{ marginBottom: 12 }}>
-        <h4>Dosya Yükle</h4>
-        <form onSubmit={(e)=>e.preventDefault()} style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          <input type="file" onChange={async (e) => {
+    <div data-zorlu-ecu style={{ minHeight: "100vh" }}>
+      <div style={{ maxWidth: 1200, margin: "0 auto", padding: 24 }}>
+        <h3 style={{ textAlign: "center", marginBottom: 16 }}>🧠 AI Learning — Eşleştirme</h3>
+        <div className="card" style={{ marginBottom: 12, padding: 16 }}>
+          <h4>Dosya Yükle</h4>
+          <form onSubmit={(e)=>e.preventDefault()} style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+            <input type="file" onChange={async (e) => {
             const f = e.target.files?.[0];
             if (!f) return;
             setUploading(true);
@@ -49,21 +51,17 @@ export default function ZorluAILearning() {
               if (!res.ok) throw new Error(await res.text());
               const data = await res.json();
               setErr("");
-              refreshFiles();
-              // Otomatik öner: aynı tipi seç
-              if (data.metadata?.ecuType) {
-                setTimeout(() => {
-                  const same = files.filter(f => f.ecu_type === data.metadata.ecuType && f.id !== data.id);
-                  if (same.length > 0) {
-                    setTargetFileId(same[0].id);
-                  }
-                }, 200);
+              const latest = await refreshFiles();
+              if (data.metadata?.ecuType && latest?.files) {
+                const same = latest.files.filter(ff => ff.ecu_type === data.metadata.ecuType && ff.id !== data.id);
+                if (same.length > 0) setTarget(same[0].id);
+                setOriginal(data.id);
               }
             } catch (e) { setErr("Yükleme başarısız"); } finally { setUploading(false); }
-          }} />
-          {uploading && <span className="muted">Yükleniyor…</span>}
-        </form>
-      </div>
+            }} />
+            {uploading && <span className="muted">Yükleniyor…</span>}
+          </form>
+        </div>
 
       {Object.keys(suggestions).length > 0 && (
         <div className="card" style={{ marginBottom: 12, background: "rgba(255,140,26,0.1)", borderColor: "rgba(255,140,26,0.3)" }}>
@@ -81,7 +79,7 @@ export default function ZorluAILearning() {
         </div>
       )}
 
-      <form onSubmit={onCompare} style={{ display: "grid", gap: 8, maxWidth: 420 }}>
+      <form onSubmit={onCompare} style={{ display: "grid", gap: 8, maxWidth: 520, margin: "0 auto" }}>
         <input placeholder="Orijinal Dosya ID" value={originalFileId} onChange={e => setOriginal(e.target.value)} />
         <input placeholder="Hedef Dosya ID" value={targetFileId} onChange={e => setTarget(e.target.value)} />
         <div className="muted">Mevcut dosyalar: {files.map(f=>`#${f.id} (${f.ecu_type})`).join(", ") || "(yok)"}</div>
@@ -89,10 +87,11 @@ export default function ZorluAILearning() {
         <button type="submit">Karşılaştır</button>
       </form>
       {out && (
-        <pre style={{ background: "#f7f7f7", padding: 12, borderRadius: 6, marginTop: 12 }}>
+        <pre style={{ background: "var(--panel)", border: "1px solid var(--border)", padding: 12, borderRadius: 6, marginTop: 12 }}>
           {JSON.stringify(out, null, 2)}
         </pre>
       )}
+      </div>
     </div>
   );
 }

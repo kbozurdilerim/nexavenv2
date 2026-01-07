@@ -16,15 +16,35 @@ export default function ZorluDashboard() {
     })();
   }, []);
 
-  if (err) return <div style={{ color: "crimson" }}>{err}</div>;
-  if (!data) return <div>Yükleniyor…</div>;
+  if (err) return <div className="admin-error">{err}</div>;
+  if (!data) return <div style={{ textAlign: "center", padding: 24 }}>Yükleniyor…</div>;
 
   return (
-    <div>
-      <h3>Dashboard</h3>
-      <pre style={{ background: "#f7f7f7", padding: 12, borderRadius: 6 }}>
-        {JSON.stringify(data, null, 2)}
-      </pre>
+    <div data-zorlu-ecu style={{ minHeight: "100vh" }}>
+      <div style={{ maxWidth: 1200, margin: "0 auto", padding: 24 }}>
+        <div style={{ textAlign: "center", marginBottom: 16 }}>
+          <h3>🚗 Dashboard</h3>
+          <div className="muted">Genel durum özetiniz</div>
+        </div>
+        <div className="admin-stats">
+          <div className="stat-card">
+            <div className="stat-card-label">Tuned Vehicles</div>
+            <div className="stat-card-value">{data.summary?.tunedVehicles ?? 0}</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-card-label">Pending Comparisons</div>
+            <div className="stat-card-value" style={{ color: "var(--accent-2)" }}>{data.summary?.pendingComparisons ?? 0}</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-card-label">AI Models</div>
+            <div className="stat-card-value">{data.summary?.aiModels ?? 0}</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-card-label">Last Run</div>
+            <div className="stat-card-value" style={{ fontSize: 16 }}>{new Date(data.summary?.lastRunAt).toLocaleString("tr-TR")}</div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
