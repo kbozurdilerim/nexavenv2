@@ -1,5 +1,5 @@
-import { BrowserRouter, Routes, Route, Suspense } from "react-router-dom";
-import { lazy } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { lazy, Suspense } from "react";
 
 // Main routes
 import Admin from "./pages/Admin";
