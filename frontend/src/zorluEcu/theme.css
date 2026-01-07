@@ -1,4 +1,5 @@
 [data-zorlu-ecu] {
+  /* Colors */
   --bg: #0f1115;
   --panel: #12151c;
   --panel-2: #161a22;
@@ -9,8 +10,19 @@
   --accent-2: #ff8c1a; /* turuncu */
   --accent-3: #ffffff; /* beyaz */
 
+  /* Sizing */
+  --radius: 10px;
+  --radius-sm: 8px;
+  --shadow: 0 10px 30px rgba(0,0,0,0.35);
+
+  /* Typography */
+  --font: ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+
   background: var(--bg);
   color: var(--fg);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 [data-zorlu-ecu] * { box-sizing: border-box; }
@@ -18,20 +30,25 @@
 [data-zorlu-ecu] a:hover { color: var(--accent-2); }
 
 [data-zorlu-ecu] aside.zorlu-aside {
-  width: 240px;
-  padding: 16px;
+  width: 260px;
+  padding: 20px;
   border-right: 1px solid var(--border);
-  background: var(--panel);
+  background: linear-gradient(180deg, rgba(18,21,28,1) 0%, rgba(22,26,34,1) 100%);
 }
 
-[data-zorlu-ecu] .zorlu-brand { margin: 0 0 12px 0; font-size: 18px; }
+[data-zorlu-ecu] .zorlu-brand {
+  margin: 0 0 6px 0; 
+  font-size: 22px; 
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+}
 [data-zorlu-ecu] .zorlu-sub { margin: 0 0 16px 0; color: var(--muted); font-size: 12px; }
 
-[data-zorlu-ecu] nav.zorlu-nav { display: grid; gap: 6px; }
+[data-zorlu-ecu] nav.zorlu-nav { display: grid; gap: 8px; }
 [data-zorlu-ecu] nav.zorlu-nav a {
   display: block;
-  padding: 10px 12px;
-  border-radius: 8px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
   color: var(--fg);
   background: transparent;
   border: 1px solid transparent;
@@ -48,24 +65,29 @@
 
 [data-zorlu-ecu] main.zorlu-main {
   flex: 1;
-  padding: 24px;
+  padding: 28px;
 }
 
 [data-zorlu-ecu] h1, [data-zorlu-ecu] h2, [data-zorlu-ecu] h3 {
   margin: 0 0 12px 0;
 }
+[data-zorlu-ecu] h2, [data-zorlu-ecu] h3 {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+}
 
 [data-zorlu-ecu] .card {
   background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius);
   padding: 16px;
+  box-shadow: var(--shadow);
 }
 
 [data-zorlu-ecu] pre {
   background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius);
   padding: 12px;
   color: var(--fg);
 }
@@ -76,8 +98,8 @@
   background: var(--panel);
   color: var(--fg);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
   outline: none;
 }
 [data-zorlu-ecu] input:focus,
@@ -92,16 +114,53 @@
   background: linear-gradient(180deg, var(--accent), #e03a3c);
   color: #fff;
   border: none;
-  border-radius: 10px;
-  padding: 10px 14px;
+  border-radius: var(--radius);
+  padding: 12px 16px;
   cursor: pointer;
+  transition: transform .08s ease, filter .2s ease;
 }
 [data-zorlu-ecu] button:hover,
 [data-zorlu-ecu] .btn:hover {
-  filter: brightness(1.05);
+  filter: brightness(1.06);
+}
+[data-zorlu-ecu] button:active,
+[data-zorlu-ecu] .btn:active {
+  transform: translateY(1px);
 }
 [data-zorlu-ecu] .btn-secondary {
   background: linear-gradient(180deg, var(--accent-2), #ff6d00);
 }
 
 [data-zorlu-ecu] .muted { color: var(--muted); }
+
+/* Utility containers */
+[data-zorlu-ecu] .container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+/* Tables (admin) */
+[data-zorlu-ecu] table {
+  width: 100%;
+}
+[data-zorlu-ecu] th, [data-zorlu-ecu] td { vertical-align: middle; }
+
+/* Inputs – file */
+[data-zorlu-ecu] input[type="file"] {
+  background: transparent;
+  border: 1px dashed var(--border);
+  padding: 14px;
+  border-radius: var(--radius);
+}
+
+/* Responsive tweaks */
+@media (min-width: 1920px) {
+  [data-zorlu-ecu] { font-size: 18px; }
+  [data-zorlu-ecu] aside.zorlu-aside { width: 300px; }
+}
+@media (max-width: 960px) {
+  [data-zorlu-ecu] aside.zorlu-aside { display: none; }
+  [data-zorlu-ecu] main.zorlu-main { padding: 18px; }
+}
