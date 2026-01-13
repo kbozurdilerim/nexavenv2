@@ -24,13 +24,13 @@ export default function Admin() {
     try {
       // Dashboard stats
       const statsRes = await fetch("/api/dashboard/stats", {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: token }
       });
       setStats(await statsRes.json());
 
       // Licenses
       const licRes = await fetch("/api/license", {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: token }
       });
       setLicenses(await licRes.json());
 
@@ -44,7 +44,7 @@ export default function Admin() {
 
       // License Requests
       const reqRes = await fetch("/api/license-requests/all", {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: token }
       });
       setLicenseRequests(await reqRes.json());
     } catch (err) {
@@ -143,7 +143,7 @@ function RequestsTab({ requests, token, onUpdate }) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
+          Authorization: token
         },
         body: JSON.stringify({ admin_note: note })
       });
@@ -162,7 +162,7 @@ function RequestsTab({ requests, token, onUpdate }) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
+          Authorization: token
         },
         body: JSON.stringify({ admin_note: note })
       });
@@ -231,7 +231,7 @@ function LicensesTab({ licenses, token, onUpdate }) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`
+        Authorization: token
       },
       body: JSON.stringify({
         license_key: key,
@@ -299,7 +299,7 @@ function FeaturesTab({ features, token, onUpdate }) {
     try {
       const res = await fetch("/api/cms/upload", {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: token },
         body: formData
       });
       const data = await res.json();
@@ -320,7 +320,7 @@ function FeaturesTab({ features, token, onUpdate }) {
     
     await fetch("/api/cms/features", {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      headers: { "Content-Type": "application/json", Authorization: token },
       body: JSON.stringify({ title, description, icon, image_url: imageUrl, order_index: features.length })
     });
     onUpdate();
@@ -335,7 +335,7 @@ function FeaturesTab({ features, token, onUpdate }) {
     if (!confirm("Silmek istediğinize emin misiniz?")) return;
     await fetch(`/api/cms/features/${id}`, {
       method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { Authorization: token }
     });
     onUpdate();
   };
@@ -397,7 +397,7 @@ function VehiclesTab({ vehicles, token, onUpdate }) {
     try {
       const res = await fetch("/api/cms/upload", {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: token },
         body: formData
       });
       const data = await res.json();
@@ -418,7 +418,7 @@ function VehiclesTab({ vehicles, token, onUpdate }) {
     
     await fetch("/api/cms/vehicles", {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      headers: { "Content-Type": "application/json", Authorization: token },
       body: JSON.stringify({ name, type, specs, image: imageUrl || "🚗", order_index: vehicles.length })
     });
     onUpdate();
@@ -433,7 +433,7 @@ function VehiclesTab({ vehicles, token, onUpdate }) {
     if (!confirm("Silmek istediğinize emin misiniz?")) return;
     await fetch(`/api/cms/vehicles/${id}`, {
       method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { Authorization: token }
     });
     onUpdate();
   };
@@ -492,7 +492,7 @@ function PricingTab({ pricing, token, onUpdate }) {
     
     await fetch("/api/cms/pricing", {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      headers: { "Content-Type": "application/json", Authorization: token },
       body: JSON.stringify({ plan_name: plan, price, features, order_index: pricing.length })
     });
     onUpdate();
@@ -505,7 +505,7 @@ function PricingTab({ pricing, token, onUpdate }) {
     if (!confirm("Silmek istediğinize emin misiniz?")) return;
     await fetch(`/api/cms/pricing/${id}`, {
       method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { Authorization: token }
     });
     onUpdate();
   };
@@ -550,7 +550,7 @@ function DownloadsTab({ downloads, token, onUpdate }) {
     
     await fetch("/api/cms/downloads", {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      headers: { "Content-Type": "application/json", Authorization: token },
       body: JSON.stringify({ version, download_url: url, changelog, order_index: downloads.length })
     });
     onUpdate();
@@ -563,7 +563,7 @@ function DownloadsTab({ downloads, token, onUpdate }) {
     if (!confirm("Silmek istediğinize emin misiniz?")) return;
     await fetch(`/api/cms/downloads/${id}`, {
       method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { Authorization: token }
     });
     onUpdate();
   };
@@ -843,3 +843,4 @@ const styles = {
     fontWeight: "bold",
   },
 };
+

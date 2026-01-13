@@ -27,28 +27,28 @@ export default function UserPanel() {
     try {
       // Kullanıcı bilgilerini al
       const userRes = await fetch("/api/auth/me", {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: token }
       });
       const userData = await userRes.json();
       setUser(userData);
 
       // Lisansları al
       const licensesRes = await fetch("/api/licenses", {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: token }
       });
       const licensesData = await licensesRes.json();
       setMyLicenses(licensesData.filter(l => l.user_id === userData.id));
 
       // Taleplerim
       const requestsRes = await fetch("/api/license-requests/my-requests", {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: token }
       });
       const requestsData = await requestsRes.json();
       setMyRequests(requestsData);
 
       // Bildirimler
       const notifRes = await fetch("/api/notifications", {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: token }
       });
       const notifData = await notifRes.json();
       setNotifications(notifData);
@@ -70,7 +70,7 @@ export default function UserPanel() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
+          Authorization: token
         },
         body: JSON.stringify({
           plan_id: planId,
@@ -94,7 +94,7 @@ export default function UserPanel() {
     const token = localStorage.getItem("token");
     await fetch(`/api/notifications/${id}/read`, {
       method: "PUT",
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { Authorization: token }
     });
     fetchUserData();
   };
@@ -555,3 +555,4 @@ const styles = {
     fontSize: 12,
   },
 };
+
