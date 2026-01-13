@@ -190,6 +190,27 @@ db.serialize(() => {
   `);
   db.run(`CREATE INDEX IF NOT EXISTS idx_tuning_jobs_status ON tuning_jobs(status)`);
   db.run(`CREATE INDEX IF NOT EXISTS idx_tuning_jobs_user_id ON tuning_jobs(user_id)`);
+
+  // Site Settings tablosu - YENİ
+  db.run(`
+    CREATE TABLE IF NOT EXISTS site_settings (
+      id INTEGER PRIMARY KEY DEFAULT 1,
+      site_title TEXT DEFAULT 'NEXAVEN',
+      site_description TEXT,
+      hero_title TEXT,
+      hero_subtitle TEXT,
+      about_title TEXT,
+      about_text TEXT,
+      contact_email TEXT,
+      contact_phone TEXT,
+      social_facebook TEXT,
+      social_twitter TEXT,
+      social_instagram TEXT,
+      footer_text TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
 });
 
 module.exports = db;

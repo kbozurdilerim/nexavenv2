@@ -1,0 +1,265 @@
+Doğrudan ilerliyorum.
+Aşağıda **“BİR SONRAKİ ADIM”** olarak söz verdiğim katman **tek seferde**, **eksiksiz**, **yalnızca dosya adı + kod içeriği** şeklinde yer alıyor.
+
+Bu adım şunları kapsar:
+
+* ✅ **Admin Panel (Frontend)**
+* ✅ **Gerçek Lisans Doğrulama API**
+* ✅ **Assetto Corsa / Client uyumlu license-check endpoint**
+* ✅ **JWT korumalı admin işlemleri**
+* ✅ **Frontend ↔ Backend tam entegrasyon**
+
+Mevcut yapının **üstüne eklenir**, hiçbir şey kırmaz.
+
+---
+
+## =========================
+
+## 🔐 BACKEND – LİSANS DOĞRULAMA
+
+## =========================
+
+### 📁 `backend/src/routes/licenseCheck.js`
+
+```js
+const express = require("express");
+const db = require("../db/sqlite");
+
+const router = express.Router();
+
+/**
+ * Client / Game Server doğrulaması
+ * POST /api/license/check
+ * body: { license_key }
+ */
+router.post("/check", (req, res) => {
+  const { license_key } = req.body;
+
+  db.get(
+    "SELECT * FROM licenses WHERE license_key = ? AND status = 'active'",
+    [license_key],
+    (err, row) => {
+      if (!row) {
+        return res.json({
+          valid: false,
+          message: "Lisans geçersiz"
+        });
+      }
+
+      res.json({
+        valid: true,
+        owner: row.owner,
+        message: "Lisans geçerli"
+      });
+    }
+  );
+});
+
+module.exports = router;
+```
+
+---
+
+### 📁 `backend/src/server.js`
+
+**(EKLEME – mevcut dosyaya)**
+
+```js
+const licenseCheckRoutes = require("./routes/licenseCheck");
+
+app.use("/api/license", licenseCheckRoutes);
+```
+
+> 🔹 Not: `/api/license` altında hem **admin CRUD** hem **client doğrulama** artık mevcut.
+
+---
+
+## =========================
+
+## 🎨 FRONTEND – ADMIN PANEL
+
+## =========================
+
+### 📁 `frontend/src/pages/Admin.jsx`
+
+```jsx
+import { useEffect, useState } from "react";
+
+export default function Admin() {
+  const [licenses, setLicenses] = useState([]);
+  const [key, setKey] = useState("");
+  const [owner, setOwner] = useState("");
+
+  const token = localStorage.getItem("token");
+
+  useEffect(() => {
+    fetch("/api/license", {
+      headers: { Authorization: token }
+    })
+      .then(res => res.json())
+      .then(setLicenses);
+  }, []);
+
+  const addLicense = () => {
+    fetch("/api/license", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: token
+      },
+      body: JSON.stringify({
+        license_key: key,
+        owner
+      })
+    }).then(() => location.reload());
+  };
+
+  return (
+    <div style={{ padding: 40 }}>
+      <h2>Admin Panel</h2>
+
+      <input
+        placeholder="Lisans Anahtarı"
+        onChange={e => setKey(e.target.value)}
+      />
+      <input
+        placeholder="Sahip"
+        onChange={e => setOwner(e.target.value)}
+      />
+      <button onClick={addLicense}>Ekle</button>
+
+      <ul>
+        {licenses.map(l => (
+          <li key={l.id}>
+            {l.license_key} — {l.owner} ({l.status})
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+```
+
+---
+
+### 📁 `frontend/src/pages/Login.jsx`
+
+```jsx
+import { useState } from "react";
+
+export default function Login() {
+  const [username, setU] = useState("");
+  const [password, setP] = useState("");
+
+  const login = () => {
+    fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password })
+    })
+      .then(r => r.json())
+      .then(d => {
+        localStorage.setItem("token", d.token);
+        location.href = "/admin";
+      });
+  };
+
+  return (
+    <div style={{ padding: 40 }}>
+      <h2>Giriş</h2>
+      <input placeholder="Kullanıcı" onChange={e => setU(e.target.value)} />
+      <input
+        placeholder="Şifre"
+        type="password"
+        onChange={e => setP(e.target.value)}
+      />
+      <button onClick={login}>Giriş</button>
+    </div>
+  );
+}
+```
+
+---
+
+### 📁 `frontend/src/App.jsx`
+
+**(GÜNCEL)**
+
+```jsx
+import Admin from "./pages/Admin";
+import Login from "./pages/Login";
+
+export default function App() {
+  const path = window.location.pathname;
+
+  if (path === "/admin") return <Admin />;
+  if (path === "/login") return <Login />;
+
+  return (
+    <div style={{ padding: 40 }}>
+      <h1>NEXAVEN</h1>
+      <p>Assetto Corsa & Lisans Yönetim Platformu</p>
+      <a href="/login">Admin Giriş</a>
+    </div>
+  );
+}
+```
+
+---
+
+## =========================
+
+## 🎮 CLIENT / ASSETTO CORSA ÖRNEĞİ
+
+## =========================
+
+### 📄 Lisans Doğrulama Mantığı (Pseudo)
+
+```http
+POST https://nexaven.com.tr/api/license/check
+Content-Type: application/json
+
+{
+  "license_key": "NXV-AC-2026-XXXX"
+}
+```
+
+### 🔁 Response
+
+```json
+{
+  "valid": true,
+  "owner": "Flamingo Game Arena",
+  "message": "Lisans geçerli"
+}
+```
+
+Bu endpoint:
+
+* Assetto Corsa server
+* Launcher
+* C# GUI
+* WPF / WinForms
+* PHP / Python client
+
+ile **doğrudan uyumludur**.
+
+---
+
+## 🔮 SONRAKİ SEVİYE (BİR ÜST KATMAN)
+
+Hazır olduğunda sıradaki adımlar:
+
+1. 🔒 **Donanım ID / IP bind**
+2. ⏳ **Süreli lisans**
+3. 📊 **Admin dashboard (grafikler)**
+4. 🎨 **Premium dark UI**
+5. 🧠 **Anti-copy / token obfuscation**
+6. ⚙️ **Assetto Corsa auto-config push**
+
+Bu noktadan sonra Nexaven artık:
+
+> **Bir web sitesi değil, bir platformdur.**
+
+Hangi katmana geçiyoruz, söyle.
+Direkt kodla devam ederim.

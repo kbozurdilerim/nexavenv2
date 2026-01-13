@@ -9,6 +9,7 @@ export default function Admin() {
   const [downloads, setDownloads] = useState([]);
   const [licenseRequests, setLicenseRequests] = useState([]);
   const [stats, setStats] = useState({});
+  const [siteSettings, setSiteSettings] = useState({});
 
   const token = localStorage.getItem("token");
 
@@ -24,13 +25,13 @@ export default function Admin() {
     try {
       // Dashboard stats
       const statsRes = await fetch("/api/dashboard/stats", {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: token }
       });
       setStats(await statsRes.json());
 
       // Licenses
       const licRes = await fetch("/api/license", {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: token }
       });
       setLicenses(await licRes.json());
 
@@ -44,9 +45,15 @@ export default function Admin() {
 
       // License Requests
       const reqRes = await fetch("/api/license-requests/all", {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: token }
       });
       setLicenseRequests(await reqRes.json());
+
+      // Site Settings
+      const settingsRes = await fetch("/api/settings", {
+        headers: { Authorization: token }
+      });
+      setSiteSettings(await settingsRes.json());
     } catch (err) {
       console.error("Veri yüklenirken hata:", err);
     }
@@ -77,6 +84,9 @@ export default function Admin() {
           <button onClick={() => setActiveTab("vehicles")} style={activeTab === "vehicles" ? styles.navBtnActive : styles.navBtn}>
             🚗 Araç Vitrini
           </button>
+          <button onClick={() => setActiveTab("settings")} style={activeTab === "settings" ? styles.navBtnActive : styles.navBtn}>
+            ⚙️ Genel Ayarlar
+          </button>
           <button onClick={() => setActiveTab("pricing")} style={activeTab === "pricing" ? styles.navBtnActive : styles.navBtn}>
             💰 Ücretler
           </button>
@@ -92,6 +102,7 @@ export default function Admin() {
         {activeTab === "requests" && <RequestsTab requests={licenseRequests} token={token} onUpdate={fetchData} />}
         {activeTab === "licenses" && <LicensesTab licenses={licenses} token={token} onUpdate={fetchData} />}
         {activeTab === "features" && <FeaturesTab features={features} token={token} onUpdate={fetchData} />}
+        {activeTab === "settings" && <SettingsTab settings={siteSettings} token={token} onUpdate={fetchData} />}
         {activeTab === "vehicles" && <VehiclesTab vehicles={vehicles} token={token} onUpdate={fetchData} />}
         {activeTab === "pricing" && <PricingTab pricing={pricing} token={token} onUpdate={fetchData} />}
         {activeTab === "downloads" && <DownloadsTab downloads={downloads} token={token} onUpdate={fetchData} />}
@@ -143,7 +154,7 @@ function RequestsTab({ requests, token, onUpdate }) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
+          Authorization: token
         },
         body: JSON.stringify({ admin_note: note })
       });
@@ -162,7 +173,7 @@ function RequestsTab({ requests, token, onUpdate }) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
+          Authorization: token
         },
         body: JSON.stringify({ admin_note: note })
       });
@@ -231,7 +242,7 @@ function LicensesTab({ licenses, token, onUpdate }) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`
+        Authorization: token
       },
       body: JSON.stringify({
         license_key: key,
@@ -299,7 +310,7 @@ function FeaturesTab({ features, token, onUpdate }) {
     try {
       const res = await fetch("/api/cms/upload", {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: token },
         body: formData
       });
       const data = await res.json();
@@ -320,7 +331,7 @@ function FeaturesTab({ features, token, onUpdate }) {
     
     await fetch("/api/cms/features", {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      headers: { "Content-Type": "application/json", Authorization: token },
       body: JSON.stringify({ title, description, icon, image_url: imageUrl, order_index: features.length })
     });
     onUpdate();
@@ -335,7 +346,7 @@ function FeaturesTab({ features, token, onUpdate }) {
     if (!confirm("Silmek istediğinize emin misiniz?")) return;
     await fetch(`/api/cms/features/${id}`, {
       method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { Authorization: token }
     });
     onUpdate();
   };
@@ -397,7 +408,7 @@ function VehiclesTab({ vehicles, token, onUpdate }) {
     try {
       const res = await fetch("/api/cms/upload", {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: token },
         body: formData
       });
       const data = await res.json();
@@ -418,7 +429,7 @@ function VehiclesTab({ vehicles, token, onUpdate }) {
     
     await fetch("/api/cms/vehicles", {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      headers: { "Content-Type": "application/json", Authorization: token },
       body: JSON.stringify({ name, type, specs, image: imageUrl || "🚗", order_index: vehicles.length })
     });
     onUpdate();
@@ -433,7 +444,7 @@ function VehiclesTab({ vehicles, token, onUpdate }) {
     if (!confirm("Silmek istediğinize emin misiniz?")) return;
     await fetch(`/api/cms/vehicles/${id}`, {
       method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { Authorization: token }
     });
     onUpdate();
   };
@@ -492,7 +503,7 @@ function PricingTab({ pricing, token, onUpdate }) {
     
     await fetch("/api/cms/pricing", {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      headers: { "Content-Type": "application/json", Authorization: token },
       body: JSON.stringify({ plan_name: plan, price, features, order_index: pricing.length })
     });
     onUpdate();
@@ -505,7 +516,7 @@ function PricingTab({ pricing, token, onUpdate }) {
     if (!confirm("Silmek istediğinize emin misiniz?")) return;
     await fetch(`/api/cms/pricing/${id}`, {
       method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { Authorization: token }
     });
     onUpdate();
   };
@@ -550,7 +561,7 @@ function DownloadsTab({ downloads, token, onUpdate }) {
     
     await fetch("/api/cms/downloads", {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      headers: { "Content-Type": "application/json", Authorization: token },
       body: JSON.stringify({ version, download_url: url, changelog, order_index: downloads.length })
     });
     onUpdate();
@@ -563,7 +574,7 @@ function DownloadsTab({ downloads, token, onUpdate }) {
     if (!confirm("Silmek istediğinize emin misiniz?")) return;
     await fetch(`/api/cms/downloads/${id}`, {
       method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { Authorization: token }
     });
     onUpdate();
   };
@@ -843,3 +854,194 @@ const styles = {
     fontWeight: "bold",
   },
 };
+
+// ============ Settings Tab ============
+function SettingsTab({ settings, token, onUpdate }) {
+  const [formData, setFormData] = useState({
+    site_title: "",
+    site_description: "",
+    hero_title: "",
+    hero_subtitle: "",
+    about_title: "",
+    about_text: "",
+    contact_email: "",
+    contact_phone: "",
+    social_facebook: "",
+    social_twitter: "",
+    social_instagram: "",
+    footer_text: "",
+    ...settings
+  });
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setFormData({ ...formData, ...settings });
+  }, [settings]);
+
+  const handleChange = (field, value) => {
+    setFormData({ ...formData, [field]: value });
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const res = await fetch("/api/settings", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token
+        },
+        body: JSON.stringify(formData)
+      });
+      if (res.ok) {
+        alert("Ayarlar başarıyla kaydedildi!");
+        onUpdate();
+      } else {
+        alert("Kaydetme hatası!");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Sunucuya bağlanılamadı!");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div>
+      <h2 style={styles.title}>⚙️ Genel Site Ayarları</h2>
+      <p style={{ color: "#aaa", marginBottom: 30 }}>
+        Ana sayfanın tüm içeriğini buradan düzenleyebilirsiniz. Değişiklikler anında yansır.
+      </p>
+
+      <div style={{ display: "grid", gap: 25, maxWidth: 900 }}>
+        {/* Site Info */}
+        <div style={styles.card}>
+          <h3 style={{ color: "#00b7ff", marginBottom: 15 }}>🌐 Site Bilgileri</h3>
+          <label style={styles.label}>Site Başlığı</label>
+          <input
+            style={styles.input}
+            value={formData.site_title}
+            onChange={(e) => handleChange("site_title", e.target.value)}
+            placeholder="Nexaven - Profesyonel ECU Chip Tuning"
+          />
+          <label style={styles.label}>Site Açıklaması (Meta)</label>
+          <input
+            style={styles.input}
+            value={formData.site_description}
+            onChange={(e) => handleChange("site_description", e.target.value)}
+            placeholder="Araç performansını artırın..."
+          />
+        </div>
+
+        {/* Hero Section */}
+        <div style={styles.card}>
+          <h3 style={{ color: "#00b7ff", marginBottom: 15 }}>🚀 Hero Bölümü</h3>
+          <label style={styles.label}>Ana Başlık</label>
+          <input
+            style={styles.input}
+            value={formData.hero_title}
+            onChange={(e) => handleChange("hero_title", e.target.value)}
+            placeholder="Profesyonel ECU Chip Tuning"
+          />
+          <label style={styles.label}>Alt Başlık</label>
+          <textarea
+            style={{ ...styles.input, minHeight: 80 }}
+            value={formData.hero_subtitle}
+            onChange={(e) => handleChange("hero_subtitle", e.target.value)}
+            placeholder="Aracınızın performansını maksimuma çıkarın..."
+          />
+        </div>
+
+        {/* About Section */}
+        <div style={styles.card}>
+          <h3 style={{ color: "#00b7ff", marginBottom: 15 }}>ℹ️ Hakkımızda Bölümü</h3>
+          <label style={styles.label}>Başlık</label>
+          <input
+            style={styles.input}
+            value={formData.about_title}
+            onChange={(e) => handleChange("about_title", e.target.value)}
+            placeholder="Hakkımızda"
+          />
+          <label style={styles.label}>Açıklama</label>
+          <textarea
+            style={{ ...styles.input, minHeight: 120 }}
+            value={formData.about_text}
+            onChange={(e) => handleChange("about_text", e.target.value)}
+            placeholder="Nexaven olarak..."
+          />
+        </div>
+
+        {/* Contact */}
+        <div style={styles.card}>
+          <h3 style={{ color: "#00b7ff", marginBottom: 15 }}>📞 İletişim Bilgileri</h3>
+          <label style={styles.label}>E-posta</label>
+          <input
+            style={styles.input}
+            value={formData.contact_email}
+            onChange={(e) => handleChange("contact_email", e.target.value)}
+            placeholder="info@nexaven.com"
+          />
+          <label style={styles.label}>Telefon</label>
+          <input
+            style={styles.input}
+            value={formData.contact_phone}
+            onChange={(e) => handleChange("contact_phone", e.target.value)}
+            placeholder="+90 XXX XXX XX XX"
+          />
+        </div>
+
+        {/* Social Media */}
+        <div style={styles.card}>
+          <h3 style={{ color: "#00b7ff", marginBottom: 15 }}>📱 Sosyal Medya</h3>
+          <label style={styles.label}>Facebook</label>
+          <input
+            style={styles.input}
+            value={formData.social_facebook}
+            onChange={(e) => handleChange("social_facebook", e.target.value)}
+            placeholder="https://facebook.com/..."
+          />
+          <label style={styles.label}>Twitter (X)</label>
+          <input
+            style={styles.input}
+            value={formData.social_twitter}
+            onChange={(e) => handleChange("social_twitter", e.target.value)}
+            placeholder="https://twitter.com/..."
+          />
+          <label style={styles.label}>Instagram</label>
+          <input
+            style={styles.input}
+            value={formData.social_instagram}
+            onChange={(e) => handleChange("social_instagram", e.target.value)}
+            placeholder="https://instagram.com/..."
+          />
+        </div>
+
+        {/* Footer */}
+        <div style={styles.card}>
+          <h3 style={{ color: "#00b7ff", marginBottom: 15 }}>📝 Footer Metni</h3>
+          <textarea
+            style={{ ...styles.input, minHeight: 80 }}
+            value={formData.footer_text}
+            onChange={(e) => handleChange("footer_text", e.target.value)}
+            placeholder="© 2024 Nexaven. Tüm hakları saklıdır."
+          />
+        </div>
+
+        {/* Save Button */}
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          style={{
+            ...styles.btn,
+            background: saving ? "#555" : "linear-gradient(135deg, #00b7ff, #0066ff)",
+            fontSize: 18,
+            padding: "15px 40px",
+          }}
+        >
+          {saving ? "Kaydediliyor..." : "💾 Değişiklikleri Kaydet"}
+        </button>
+      </div>
+    </div>
+  );
+}

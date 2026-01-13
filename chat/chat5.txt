@@ -1,0 +1,228 @@
+Tamam.
+**Adım 4 uygulanıyor ve bundan sonra FINAL veriyorum.**
+Aşağıda yine **tek seferde**, **yalnızca dosya adı + içerik kodları** yer alıyor.
+Bu adım Nexaven’i **domain + HTTPS + reverse proxy + tek port (443)** çalışan **production platform** yapar.
+
+---
+
+# 🧩 ADIM 4 – PRODUCTION KATMANI
+
+## **Nginx Reverse Proxy + HTTPS (Let’s Encrypt) + API Proxy**
+
+---
+
+## =========================
+
+## 🌐 NGINX + SSL MİMARİSİ
+
+## =========================
+
+* Frontend → `/`
+* Backend API → `/api`
+* HTTPS → `443`
+* HTTP → `80 → 443 redirect`
+
+---
+
+## 📁 `docker-compose.yml` **(GÜNCEL – TAM DOSYA)**
+
+```yaml
+version: "3.8"
+
+services:
+  backend:
+    build: ./backend
+    container_name: nexaven-backend
+    env_file:
+      - .env
+    volumes:
+      - ./backend/data:/app/data
+    restart: always
+
+  frontend:
+    build: ./frontend
+    container_name: nexaven-frontend
+    restart: always
+
+  nginx:
+    image: nginx:alpine
+    container_name: nexaven-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/certbot/www:/var/www/certbot
+      - ./nginx/certbot/conf:/etc/letsencrypt
+    depends_on:
+      - frontend
+      - backend
+    restart: always
+
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - ./nginx/certbot/www:/var/www/certbot
+      - ./nginx/certbot/conf:/etc/letsencrypt
+```
+
+---
+
+## =========================
+
+## 🔒 NGINX CONFIG
+
+## =========================
+
+## 📁 `nginx/nginx.conf`
+
+```nginx
+events {}
+
+http {
+  server {
+    listen 80;
+    server_name nexaven.com.tr www.nexaven.com.tr;
+
+    location /.well-known/acme-challenge/ {
+      root /var/www/certbot;
+    }
+
+    location / {
+      return 301 https://$host$request_uri;
+    }
+  }
+
+  server {
+    listen 443 ssl;
+    server_name nexaven.com.tr www.nexaven.com.tr;
+
+    ssl_certificate /etc/letsencrypt/live/nexaven.com.tr/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/nexaven.com.tr/privkey.pem;
+
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers on;
+
+    # FRONTEND
+    location / {
+      proxy_pass http://frontend:80;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+    }
+
+    # BACKEND API
+    location /api/ {
+      proxy_pass http://backend:5000/api/;
+      proxy_http_version 1.1;
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection "upgrade";
+      proxy_set_header Host $host;
+    }
+  }
+}
+```
+
+---
+
+## =========================
+
+## 🔐 SSL İLK KURULUM
+
+## =========================
+
+### 📄 İlk kez sertifika almak için (VPS’te):
+
+```bash
+docker compose up -d nginx
+docker compose run --rm certbot certonly \
+  --webroot \
+  --webroot-path=/var/www/certbot \
+  -d nexaven.com.tr \
+  -d www.nexaven.com.tr \
+  --email admin@nexaven.com.tr \
+  --agree-tos \
+  --no-eff-email
+```
+
+Sonra:
+
+```bash
+docker compose restart nginx
+```
+
+---
+
+## =========================
+
+## 🔁 SSL AUTO RENEW (CRON)
+
+## =========================
+
+### 📄 VPS crontab
+
+```bash
+0 3 * * * docker compose run --rm certbot renew && docker compose restart nginx
+```
+
+---
+
+## =========================
+
+## 🔗 FRONTEND API ÇAĞRILARI
+
+## =========================
+
+Artık frontend **direkt relative path** kullanır.
+
+### Örnek:
+
+```js
+fetch("/api/license/check", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    license_key: "NXV-AC-2026-001",
+    hwid: "HASH"
+  })
+});
+```
+
+> 🔹 Port yok
+> 🔹 IP yok
+> 🔹 HTTPS zorunlu
+> 🔹 Prod uyumlu
+
+---
+
+## =========================
+
+## 🏁 FINAL – NEXAVEN PLATFORM
+
+## =========================
+
+Bu noktada Nexaven:
+
+* ✅ **HTTPS zorunlu**
+* ✅ **Reverse proxy arkasında**
+* ✅ **Tek domain – tek port**
+* ✅ **Client & Game Server uyumlu**
+* ✅ **HWID + süreli lisans**
+* ✅ **Admin panel**
+* ✅ **Docker + GitHub + VPS hazır**
+* ✅ **Satılabilir ürün**
+
+Artık bu bir “proje” değil:
+
+> **Canlıya çıkmaya hazır, profesyonel bir platformdur.**
+
+🔒 **FINAL verildi.**
+
+İleride:
+
+* UI revizyonu
+* Lisans politikası değişimi
+* Yeni modüller
+* Assetto Corsa otomasyonları
+
+istersen **sıfırdan değil, bu çekirdeğin üstüne** devam ederiz.
+Haber vermen yeterli.

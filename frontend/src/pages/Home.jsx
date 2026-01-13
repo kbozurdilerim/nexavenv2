@@ -4,14 +4,29 @@ import { Link } from "react-router-dom";
 export default function Home() {
   const [pricing, setPricing] = useState([]);
   const [downloads, setDownloads] = useState([]);
+  const [settings, setSettings] = useState({
+    site_title: "Nexaven - Profesyonel ECU Chip Tuning",
+    hero_title: "YARIŞIN ÖTESİNE GEÇİN",
+    hero_subtitle: "Nexaven ile Performansı Yükseltin.",
+    about_title: "NEXAVEN ASSETTO CORSA PROJESİ",
+    about_text: "",
+    footer_text: "© 2024 Nexaven. Tüm hakları saklıdır.",
+  });
 
   useEffect(() => {
+    // Fetch CMS data
     fetch("/api/cms")
       .then(r => r.json())
       .then(data => {
         setPricing(data.pricing || []);
         setDownloads(data.downloads || []);
       })
+      .catch(console.error);
+
+    // Fetch site settings
+    fetch("/api/settings")
+      .then(r => r.json())
+      .then(data => setSettings(data))
       .catch(console.error);
   }, []);
 
@@ -32,10 +47,10 @@ export default function Home() {
       <section style={styles.hero}>
         <div style={styles.heroContent}>
           <h1 style={styles.heroTitle}>
-            YARIŞIN ÖTESİNE GEÇİN
+            {settings.hero_title}
           </h1>
           <p style={styles.heroSubtitle}>
-            Nexaven ile Performansı Yükseltin.
+            {settings.hero_subtitle}
           </p>
           <div style={styles.heroButtons}>
             <Link to="/showcase" style={styles.btnPrimary}>Araç Vitrini</Link>
@@ -47,7 +62,7 @@ export default function Home() {
 
       {/* Features Grid */}
       <section style={styles.features}>
-        <h2 style={styles.sectionTitle}>NEXAVEN ASSETTO CORSA PROJESİ</h2>
+        <h2 style={styles.sectionTitle}>{settings.about_title}</h2>
         
         <div style={styles.featureGrid}>
           <div style={styles.featureCard}>
@@ -126,8 +141,24 @@ export default function Home() {
 
       {/* Footer */}
       <footer style={styles.footer}>
-        <p style={styles.footerText}>© 2026 NEXAVEN - Assetto Corsa Lisans Yönetim Platformu</p>
-        <p style={styles.footerText}>nexaven.com.tr - Yarış Tutkunları için Güçlü Bir Platform</p>
+        <p style={styles.footerText}>{settings.footer_text}</p>
+        {settings.contact_email && (
+          <p style={styles.footerText}>📧 {settings.contact_email}</p>
+        )}
+        {settings.contact_phone && (
+          <p style={styles.footerText}>📞 {settings.contact_phone}</p>
+        )}
+        <div style={{ marginTop: 15, display: "flex", gap: 20, justifyContent: "center" }}>
+          {settings.social_facebook && (
+            <a href={settings.social_facebook} target="_blank" style={styles.socialLink}>Facebook</a>
+          )}
+          {settings.social_twitter && (
+            <a href={settings.social_twitter} target="_blank" style={styles.socialLink}>Twitter</a>
+          )}
+          {settings.social_instagram && (
+            <a href={settings.social_instagram} target="_blank" style={styles.socialLink}>Instagram</a>
+          )}
+        </div>
       </footer>
     </div>
   );
@@ -399,5 +430,11 @@ const styles = {
     margin: "10px 0",
     color: "#666",
     fontSize: 14,
+  },
+  socialLink: {
+    color: "#00b7ff",
+    textDecoration: "none",
+    fontSize: 14,
+    transition: "color 0.3s",
   },
 };

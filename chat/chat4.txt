@@ -1,0 +1,309 @@
+Direkt devam ediyorum.
+Bu adım **platformu “kopyalanamaz – süreli – makineye bağlı”** hale getirir.
+Yine **tek seferde**, **yalnızca dosya adı + kod** veriyorum.
+
+---
+
+# 🛡️ ADIM 3
+
+## **HWID / IP BIND + SÜRELİ LİSANS + RATE LIMIT**
+
+---
+
+## =========================
+
+## 🔧 BACKEND – VERİTABANI GENİŞLETME
+
+## =========================
+
+### 📁 `backend/src/db/sqlite.js` **(GÜNCEL – TAM DOSYA)**
+
+```js
+const sqlite3 = require("sqlite3").verbose();
+const db = new sqlite3.Database("./data/nexaven.db");
+
+db.serialize(() => {
+  db.run(`
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      username TEXT,
+      password TEXT,
+      role TEXT
+    )
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS licenses (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      license_key TEXT,
+      owner TEXT,
+      status TEXT,
+      hwid TEXT,
+      ip TEXT,
+      expires_at TEXT
+    )
+  `);
+});
+
+module.exports = db;
+```
+
+---
+
+## =========================
+
+## 🔐 BACKEND – RATE LIMIT
+
+## =========================
+
+### 📁 `backend/src/middleware/rateLimit.js`
+
+```js
+const requests = {};
+
+module.exports = (limit = 10, windowMs = 60000) => {
+  return (req, res, next) => {
+    const ip = req.ip;
+    const now = Date.now();
+
+    if (!requests[ip]) {
+      requests[ip] = [];
+    }
+
+    requests[ip] = requests[ip].filter(
+      timestamp => now - timestamp < windowMs
+    );
+
+    if (requests[ip].length >= limit) {
+      return res.status(429).json({
+        error: "Çok fazla istek"
+      });
+    }
+
+    requests[ip].push(now);
+    next();
+  };
+};
+```
+
+---
+
+## =========================
+
+## 🔑 BACKEND – GELİŞMİŞ LİSANS CHECK
+
+## =========================
+
+### 📁 `backend/src/routes/licenseCheck.js` **(GÜNCEL)**
+
+```js
+const express = require("express");
+const db = require("../db/sqlite");
+const rateLimit = require("../middleware/rateLimit");
+
+const router = express.Router();
+
+/**
+ * POST /api/license/check
+ * body: { license_key, hwid }
+ */
+router.post("/check", rateLimit(5, 60000), (req, res) => {
+  const { license_key, hwid } = req.body;
+  const ip = req.ip;
+  const now = new Date();
+
+  db.get(
+    "SELECT * FROM licenses WHERE license_key = ?",
+    [license_key],
+    (err, lic) => {
+      if (!lic)
+        return res.json({ valid: false, reason: "Lisans yok" });
+
+      if (lic.status !== "active")
+        return res.json({ valid: false, reason: "Pasif lisans" });
+
+      if (lic.expires_at && new Date(lic.expires_at) < now)
+        return res.json({ valid: false, reason: "Lisans süresi dolmuş" });
+
+      // İlk bağlanma
+      if (!lic.hwid) {
+        db.run(
+          "UPDATE licenses SET hwid = ?, ip = ? WHERE id = ?",
+          [hwid, ip, lic.id]
+        );
+      } else if (lic.hwid !== hwid) {
+        return res.json({ valid: false, reason: "HWID uyuşmazlığı" });
+      }
+
+      res.json({
+        valid: true,
+        owner: lic.owner,
+        expires_at: lic.expires_at
+      });
+    }
+  );
+});
+
+module.exports = router;
+```
+
+---
+
+## =========================
+
+## 🔧 BACKEND – ADMIN LİSANS OLUŞTURMA
+
+## =========================
+
+### 📁 `backend/src/routes/license.js` **(GÜNCEL)**
+
+```js
+const express = require("express");
+const db = require("../db/sqlite");
+const auth = require("../middleware/authMiddleware");
+
+const router = express.Router();
+
+router.get("/", auth, (req, res) => {
+  db.all("SELECT * FROM licenses", [], (err, rows) => {
+    res.json(rows);
+  });
+});
+
+router.post("/", auth, (req, res) => {
+  const { license_key, owner, days } = req.body;
+  const expires = days
+    ? new Date(Date.now() + days * 86400000).toISOString()
+    : null;
+
+  db.run(
+    `INSERT INTO licenses
+     (license_key, owner, status, expires_at)
+     VALUES (?, ?, 'active', ?)`,
+    [license_key, owner, expires],
+    () => res.json({ status: "ok" })
+  );
+});
+
+module.exports = router;
+```
+
+---
+
+## =========================
+
+## 🎨 FRONTEND – ADMIN PANEL GELİŞTİRME
+
+## =========================
+
+### 📁 `frontend/src/pages/Admin.jsx` **(GÜNCEL)**
+
+```jsx
+import { useEffect, useState } from "react";
+
+export default function Admin() {
+  const [licenses, setLicenses] = useState([]);
+  const [key, setKey] = useState("");
+  const [owner, setOwner] = useState("");
+  const [days, setDays] = useState("");
+
+  const token = localStorage.getItem("token");
+
+  useEffect(() => {
+    fetch("/api/license", {
+      headers: { Authorization: token }
+    })
+      .then(r => r.json())
+      .then(setLicenses);
+  }, []);
+
+  const add = () => {
+    fetch("/api/license", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: token
+      },
+      body: JSON.stringify({
+        license_key: key,
+        owner,
+        days: days ? Number(days) : null
+      })
+    }).then(() => location.reload());
+  };
+
+  return (
+    <div style={{ padding: 40 }}>
+      <h2>Admin Panel</h2>
+
+      <input placeholder="Lisans" onChange={e => setKey(e.target.value)} />
+      <input placeholder="Sahip" onChange={e => setOwner(e.target.value)} />
+      <input
+        placeholder="Gün (boş = süresiz)"
+        onChange={e => setDays(e.target.value)}
+      />
+      <button onClick={add}>Oluştur</button>
+
+      <ul>
+        {licenses.map(l => (
+          <li key={l.id}>
+            {l.license_key} | {l.owner} |{" "}
+            {l.expires_at || "Süresiz"} |{" "}
+            {l.hwid ? "Bağlı" : "Boş"}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+```
+
+---
+
+## =========================
+
+## 🎮 CLIENT / WPF / C# UYUMLU ÖRNEK
+
+## =========================
+
+### 📄 Lisans Doğrulama Gönderimi
+
+```json
+POST /api/license/check
+
+{
+  "license_key": "NXV-AC-2026-001",
+  "hwid": "CPU-SSD-MAC-HASH"
+}
+```
+
+### 📄 Başarılı Yanıt
+
+```json
+{
+  "valid": true,
+  "owner": "Flamingo Game Arena",
+  "expires_at": "2026-12-31T23:59:59.000Z"
+}
+```
+
+---
+
+## 🔮 BİR SONRAKİ SEVİYE (ADIM 4)
+
+Hazır olan zemin artık **kurumsal lisans altyapısıdır**.
+Bundan sonra yapılacaklar:
+
+1. 🧠 **HWID hash + obfuscation**
+2. 🔄 **Online / offline grace period**
+3. 📊 **Grafikli admin dashboard**
+4. 🧩 **Assetto Corsa auto server.json push**
+5. 🧬 **Client-side anti-debug / anti-copy**
+6. 🔐 **HTTPS + domain + reverse proxy**
+
+Bu noktada Nexaven:
+
+> **satılabilir, dağıtılabilir, lisanslanabilir bir ürün** olur.
+
+Bir sonraki adımı da aynen böyle **tam kod** ister misin,
+yoksa belirli bir maddeyi mi derinleştireyim?

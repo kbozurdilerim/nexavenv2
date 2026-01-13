@@ -452,7 +452,6 @@ export default function ZorluAdmin() {
           </tbody>
         </table>
       )}
-        </div>
       </div>
     );
 }

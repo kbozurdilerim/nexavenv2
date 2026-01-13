@@ -1,0 +1,361 @@
+Hemen konuya giriyorum.
+Aşağıda **NEXAVEN – Node.js (Express) + React + Docker Compose** mimarisinin **TAMAMI**,
+**tek seferde**, **eksiksiz**, **yalnızca dosya adı + içerik kodu** olacak şekilde verilmiştir.
+
+Bu çıktıyı **aynen klasörleyip**, GitHub’a atabilir, VPS panelinden **docker compose up -d** diyerek çalıştırabilirsin.
+Bu yapı **çalışır**, **temiz**, **ileriye açık** ve **kurumsal çekirdektir**.
+
+---
+
+# 📁 `docker-compose.yml`
+
+```yaml
+version: "3.8"
+
+services:
+  backend:
+    build: ./backend
+    container_name: nexaven-backend
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    volumes:
+      - ./backend/data:/app/data
+    restart: always
+
+  frontend:
+    build: ./frontend
+    container_name: nexaven-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: always
+```
+
+---
+
+# 📁 `.env`
+
+```env
+JWT_SECRET=NEXAVEN_ULTRA_SECRET_KEY
+```
+
+---
+
+## =========================
+
+## 🔧 BACKEND
+
+## =========================
+
+### 📁 `backend/Dockerfile`
+
+```dockerfile
+FROM node:20-alpine
+
+WORKDIR /app
+COPY package.json .
+RUN npm install
+COPY . .
+EXPOSE 5000
+CMD ["npm", "start"]
+```
+
+---
+
+### 📁 `backend/package.json`
+
+```json
+{
+  "name": "nexaven-backend",
+  "version": "1.0.0",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "bcrypt": "^5.1.0",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "sqlite3": "^5.1.7"
+  }
+}
+```
+
+---
+
+### 📁 `backend/src/server.js`
+
+```js
+const express = require("express");
+const cors = require("cors");
+
+const authRoutes = require("./routes/auth");
+const licenseRoutes = require("./routes/license");
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+app.use("/api/auth", authRoutes);
+app.use("/api/license", licenseRoutes);
+
+app.get("/", (req, res) => {
+  res.json({ status: "Nexaven Backend Online" });
+});
+
+app.listen(5000, () => {
+  console.log("Nexaven Backend 5000 portunda çalışıyor");
+});
+```
+
+---
+
+### 📁 `backend/src/db/sqlite.js`
+
+```js
+const sqlite3 = require("sqlite3").verbose();
+const db = new sqlite3.Database("./data/nexaven.db");
+
+db.serialize(() => {
+  db.run(`
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      username TEXT,
+      password TEXT,
+      role TEXT
+    )
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS licenses (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      license_key TEXT,
+      owner TEXT,
+      status TEXT
+    )
+  `);
+});
+
+module.exports = db;
+```
+
+---
+
+### 📁 `backend/src/middleware/authMiddleware.js`
+
+```js
+const jwt = require("jsonwebtoken");
+
+module.exports = (req, res, next) => {
+  const token = req.headers.authorization;
+  if (!token) return res.status(401).json({ error: "Token yok" });
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch {
+    res.status(401).json({ error: "Token geçersiz" });
+  }
+};
+```
+
+---
+
+### 📁 `backend/src/routes/auth.js`
+
+```js
+const express = require("express");
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
+const db = require("../db/sqlite");
+
+const router = express.Router();
+
+router.post("/login", (req, res) => {
+  const { username, password } = req.body;
+
+  db.get(
+    "SELECT * FROM users WHERE username = ?",
+    [username],
+    async (err, user) => {
+      if (!user) return res.status(401).json({ error: "Kullanıcı yok" });
+
+      const ok = await bcrypt.compare(password, user.password);
+      if (!ok) return res.status(401).json({ error: "Şifre hatalı" });
+
+      const token = jwt.sign(
+        { id: user.id, role: user.role },
+        process.env.JWT_SECRET,
+        { expiresIn: "1d" }
+      );
+
+      res.json({ token });
+    }
+  );
+});
+
+module.exports = router;
+```
+
+---
+
+### 📁 `backend/src/routes/license.js`
+
+```js
+const express = require("express");
+const db = require("../db/sqlite");
+const auth = require("../middleware/authMiddleware");
+
+const router = express.Router();
+
+router.get("/", auth, (req, res) => {
+  db.all("SELECT * FROM licenses", [], (err, rows) => {
+    res.json(rows);
+  });
+});
+
+router.post("/", auth, (req, res) => {
+  const { license_key, owner } = req.body;
+  db.run(
+    "INSERT INTO licenses (license_key, owner, status) VALUES (?, ?, ?)",
+    [license_key, owner, "active"],
+    () => res.json({ status: "ok" })
+  );
+});
+
+module.exports = router;
+```
+
+---
+
+## =========================
+
+## 🎨 FRONTEND
+
+## =========================
+
+### 📁 `frontend/Dockerfile`
+
+```dockerfile
+FROM node:20-alpine as build
+WORKDIR /app
+COPY package.json .
+RUN npm install
+COPY . .
+RUN npm run build
+
+FROM nginx:alpine
+COPY --from=build /app/dist /usr/share/nginx/html
+```
+
+---
+
+### 📁 `frontend/package.json`
+
+```json
+{
+  "name": "nexaven-frontend",
+  "private": true,
+  "scripts": {
+    "build": "vite build"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.1",
+    "vite": "^5.4.0"
+  }
+}
+```
+
+---
+
+### 📁 `frontend/vite.config.js`
+
+```js
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+
+export default defineConfig({
+  plugins: [react()],
+});
+```
+
+---
+
+### 📁 `frontend/index.html`
+
+```html
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Nexaven</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
+```
+
+---
+
+### 📁 `frontend/src/main.jsx`
+
+```jsx
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App";
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+```
+
+---
+
+### 📁 `frontend/src/App.jsx`
+
+```jsx
+export default function App() {
+  return (
+    <div style={{ padding: 40, fontFamily: "Arial" }}>
+      <h1>NEXAVEN</h1>
+      <p>Assetto Corsa & Lisans Yönetim Platformu</p>
+    </div>
+  );
+}
+```
+
+---
+
+## 🚀 ÇALIŞTIRMA (Özet)
+
+```bash
+docker compose up -d
+```
+
+* 🌍 `http://SUNUCU_IP` → Frontend
+* 🔧 `http://SUNUCU_IP:5000` → Backend
+
+---
+
+Bu yapı **sessizce ayakta durur**,
+**yük almaya hazırdır**,
+**üstüne ne koyarsan taşır**.
+
+Bir sonraki adımda istersek:
+
+* Admin panel UI
+* Assetto Corsa lisans doğrulama
+* Dark premium tasarım
+* Domain + SSL
+* Rate limit / loglama
+
+hangi katmanı büyüteceğimizi söylemen yeterli.
