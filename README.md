@@ -378,3 +378,27 @@ MIT License - Ticari kullanım serbesttir.
 ---
 
 **Nexaven** - Production-ready Lisans Yönetim Platformu 🚀
+
+DEPLOY
+
+cd ~/nexavenv2
+
+# Hangi commit'deyiz?
+git log --oneline -5
+
+# Settings dosyası var mı?
+ls -la backend/src/routes/settings.js
+
+# Server.js'de settings var mı?
+grep -n "settingsRoutes" backend/src/server.js
+
+# Eğer yoksa pull çek
+git pull origin main
+
+# Rebuild
+docker compose down
+docker compose build --no-cache backend frontend
+docker compose up -d
+
+# Logları izle
+docker compose logs -f backend
